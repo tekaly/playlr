@@ -14,13 +14,13 @@ dependencies:
     sdk: flutter
   playlr_audio_player_interface:
     git:
-      url: git@github.com:tekartikprj/playlr
+      url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_player_interface
       ref: dart3a
     version: '>=0.0.1'
   tekartik_file_cache_flutter:
     git:
-      url: git@github.com:tekartikprj/playlr
+      url: https://github.com/tekaly/playlr.git
       path: packages_flutter/file_cache_flutter
       ref: dart3a
     version: '>=0.0.1'

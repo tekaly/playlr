@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   tekartik_file_cache:
     git:
-      url: git@github.com:tekartikprj/playlr
+      url: https://github.com/tekaly/playlr.git
       path: packages/file_cache
       ref: dart3a
     version: '>=0.0.1'
