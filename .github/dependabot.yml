@@ -6,6 +6,10 @@ enable-beta-ecosystems: true
 
 updates:
   - package-ecosystem: "pub"
+    directory: "packages"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
     directory: "packages/file_cache"
     schedule:
       interval: "monthly"
@@ -19,10 +23,6 @@ updates:
       interval: "monthly"
   - package-ecosystem: "pub"
     directory: "packages/playlr_audio_player_interface"
-    schedule:
-      interval: "monthly"
-  - package-ecosystem: "pub"
-    directory: "packages/playlr_support"
     schedule:
       interval: "monthly"
   - package-ecosystem: "pub"
