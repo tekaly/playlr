@@ -1,0 +1,9 @@
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - file_cache
+  - playlr_assets
+  - playlr_audio_assets
+  - playlr_audio_player_interface
