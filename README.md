@@ -1,2 +1,3 @@
-# playlr
+# Playlr
+
 Audio list player

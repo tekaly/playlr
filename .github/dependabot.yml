@@ -1,0 +1,55 @@
+# Dependabot configuration file.
+# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+version: 2
+
+enable-beta-ecosystems: true
+
+updates:
+  - package-ecosystem: "pub"
+    directory: "packages/file_cache"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/playlr_assets"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/playlr_audio_assets"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/playlr_audio_player_interface"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/playlr_support"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/file_cache_flutter"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/playlr_audio_player"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/playlr_audio_player_blue_fire"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/playlr_audio_player_just_audio"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/playlr_simple_player_app"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

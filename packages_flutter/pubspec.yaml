@@ -1,0 +1,19 @@
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - file_cache_flutter
+  - playlr_audio_player
+  - playlr_audio_player_blue_fire
+  - playlr_audio_player_just_audio
+  - playlr_simple_player_app
+dependency_overrides:
+  tekartik_file_cache:
+    path: ../packages/file_cache
+  playlr_audio_player_interface:
+    path: ../packages/playlr_audio_player_interface
+  tekaly_playlr_assets:
+    path: ../packages/playlr_assets
+  tekaly_playlr_audio_assets:
+    path: ../packages/playlr_audio_assets
