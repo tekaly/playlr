@@ -81,7 +81,7 @@ dependencies:
   tekaly_playlr_audio_assets:
     git:
       url: https://github.com/tekaly/playlr.git
-      path: packages/playlr_assets
+      path: packages/playlr_audio_assets
       ref: dart3a
 dev_dependencies:
   flutter_test:
@@ -96,7 +96,14 @@ dev_dependencies:
 
 
 dependency_overrides:
-
+  tekaly_playlr_audio_assets:
+    path: ../../packages/playlr_audio_assets
+  playlr_audio_player_blue_fire:
+    path: ../playlr_audio_player_blue_fire
+  playlr_audio_player_just_audio:
+    path: ../playlr_audio_player_just_audio
+  playlr_audio_player:
+    path: ../playlr_audio_player
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -111,7 +118,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/audio/
-resolution: workspace
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

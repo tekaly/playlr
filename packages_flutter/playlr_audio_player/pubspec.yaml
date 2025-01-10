@@ -38,14 +38,15 @@ dev_dependencies:
   flutter_lints: ">=5.0.0"
 
 dependency_overrides:
-
+  playlr_audio_player_interface:
+    path: ../../packages/playlr_audio_player_interface
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-resolution: workspace
+
 
   # To add assets to your package, add an assets section, like this:
   # assets:

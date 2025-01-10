@@ -23,6 +23,9 @@ dependencies:
       ref: dart3a
       path: app_fs
     version: '>=0.1.0'
+dependency_overrides:
+  tekartik_file_cache:
+    path: ../../packages/file_cache
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -35,7 +38,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-resolution: workspace
 
   # To add assets to your package, add an assets section, like this:
   # assets:
