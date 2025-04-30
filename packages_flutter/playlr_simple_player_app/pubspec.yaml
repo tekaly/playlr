@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.7.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -36,6 +36,11 @@ dependencies:
       path: packages_flutter/playlr_audio_player
       ref: dart3a
     version: '>=0.2.0'
+  playlr_audio_recorder:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_audio_recorder
+      ref: dart3a
   playlr_audio_player_just_audio:
     git:
       url: https://github.com/tekaly/playlr.git
@@ -95,15 +100,6 @@ dev_dependencies:
   flutter_lints: ">=5.0.0"
 
 
-dependency_overrides:
-  tekaly_playlr_audio_assets:
-    path: ../../packages/playlr_audio_assets
-  playlr_audio_player_blue_fire:
-    path: ../playlr_audio_player_blue_fire
-  playlr_audio_player_just_audio:
-    path: ../playlr_audio_player_just_audio
-  playlr_audio_player:
-    path: ../playlr_audio_player
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -118,6 +114,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/audio/
+resolution: workspace
 
   #   - images/a_dot_ham.jpeg
 

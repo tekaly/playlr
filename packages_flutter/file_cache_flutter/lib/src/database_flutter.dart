@@ -7,23 +7,27 @@ import 'package:tekartik_file_cache/file_cache.dart';
 import 'import.dart';
 
 class FileCacheDatabaseFlutter extends FileCacheDatabase {
-  FileCacheDatabaseFlutter(
-      {FileSystem? fs,
-      required super.databaseFactory,
-      required super.options,
-      super.path,
-      super.httpClientFactory})
-      : super(fs: fs ?? app.fs);
+  FileCacheDatabaseFlutter({
+    FileSystem? fs,
+    required super.databaseFactory,
+    required super.options,
+    super.path,
+    super.httpClientFactory,
+  }) : super(fs: fs ?? app.fs);
 
   // Handling assets
   @override
   Future<Uint8List> fetch(String source) async {
     var assetUri = parseAssetOrNull(source);
     if (assetUri != null) {
-      return await wrap(() async {
-        var path = assetUri.path;
-        return byteDataToUint8List(await rootBundle.load(path));
-      }, prefix: 'asset', details: source);
+      return await wrap(
+        () async {
+          var path = assetUri.path;
+          return byteDataToUint8List(await rootBundle.load(path));
+        },
+        prefix: 'asset',
+        details: source,
+      );
     }
     return super.fetch(source);
   }

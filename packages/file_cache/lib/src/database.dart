@@ -33,12 +33,13 @@ class FileCacheDatabase {
   final _fetchLockMap = <String, Lock>{};
   Future<Database>? _database;
 
-  FileCacheDatabase(
-      {required this.fs,
-      required this.databaseFactory,
-      required this.options,
-      this.path,
-      HttpClientFactory? httpClientFactory}) {
+  FileCacheDatabase({
+    required this.fs,
+    required this.databaseFactory,
+    required this.options,
+    this.path,
+    HttpClientFactory? httpClientFactory,
+  }) {
     this.httpClientFactory = httpClientFactory ?? http.httpClientFactory;
     cvAddConstructor(DbFile.new);
   }
@@ -95,10 +96,14 @@ class FileCacheDatabase {
       return _database!;
     }
     var dbName = databasePath;
-    return wrap(() async {
-      _database = databaseFactory.openDatabase(dbName);
-      return _database!;
-    }, prefix: 'db', details: dbName);
+    return wrap(
+      () async {
+        _database = databaseFactory.openDatabase(dbName);
+        return _database!;
+      },
+      prefix: 'db',
+      details: dbName,
+    );
   }
 
   Future<DbFile> getDbFile(String source) async {
@@ -107,18 +112,22 @@ class FileCacheDatabase {
     return await db.transaction((txn) async {
       var dbFile = await record.get(txn);
       if (dbFile == null) {
-        dbFile = cvFileStore.record(source).cv()
-          ..timestamp.v = Timestamp.now()
-          ..fetched.v = false
-          ..path.v = await cvFileStore.rawRef.generateKey(txn);
+        dbFile =
+            cvFileStore.record(source).cv()
+              ..timestamp.v = Timestamp.now()
+              ..fetched.v = false
+              ..path.v = await cvFileStore.rawRef.generateKey(txn);
         await dbFile.put(txn);
       }
       return dbFile;
     });
   }
 
-  Future<T> wrap<T>(Future<T> Function() action,
-      {String? prefix, String? details}) async {
+  Future<T> wrap<T>(
+    Future<T> Function() action, {
+    String? prefix,
+    String? details,
+  }) async {
     var debugWriteLn = debugCacheWriteLn;
     var sw = debugWriteLn == null ? null : (Stopwatch()..start());
     try {
@@ -126,16 +135,18 @@ class FileCacheDatabase {
     } finally {
       if (debugWriteLn != null) {
         dumpLine(
-            '${prefix ?? ''} ${sw!.elapsedMilliseconds} ms${details == null ? '' : ' $details'}');
+          '${prefix ?? ''} ${sw!.elapsedMilliseconds} ms${details == null ? '' : ' $details'}',
+        );
       }
     }
   }
 
   Future<Uint8List> fetch(String source) async {
     return await wrap(
-        () => httpClientFactory.newClient().readBytes(Uri.parse(source)),
-        prefix: 'fetch',
-        details: source);
+      () => httpClientFactory.newClient().readBytes(Uri.parse(source)),
+      prefix: 'fetch',
+      details: source,
+    );
   }
 
   late final dataPath = () {
@@ -163,10 +174,12 @@ class FileCacheDatabase {
     if (await cvFileStore.rawRef.count(db) > options.fileCountMax) {
       var files = await cvFileStore
           .query(
-              finder: Finder(
-                  filter: Filter.equals(dbFileModel.fetched.key, true),
-                  sortOrders: [SortOrder(dbFileModel.timestamp.key, false)],
-                  offset: options.fileCountMax))
+            finder: Finder(
+              filter: Filter.equals(dbFileModel.fetched.key, true),
+              sortOrders: [SortOrder(dbFileModel.timestamp.key, false)],
+              offset: options.fileCountMax,
+            ),
+          )
           .getRecords(db);
       for (var file in files) {
         var path = file.path.v!;
@@ -185,53 +198,57 @@ class FileCacheDatabase {
   }
 
   Future<Uint8List> getContent(String source) async {
-    return wrap(() async {
-      if (!isRunningAsJavascript) {
-        // Handle io file if scheme is empty
-        var uri = _sourceUri(source);
-        // debugCacheWriteLn!('wrap $source ${uri?.scheme}');
-        if (uri?.scheme.isEmpty ?? false) {
-          return await fs.file(uri!.toFilePath()).readAsBytes();
-        }
-      }
-      var dbFile = await getDbFile(source);
-      var path = dbFile.path.v!;
-      Future<Uint8List> doRead() async {
-        return fileFromPath(path).readAsBytes();
-      }
-
-      if (dbFile.fetched.v != true) {
-        Future<Uint8List> doFetch() async {
-          var lock = _fetchLockMap[source] ??= Lock();
-          try {
-            return await lock.synchronized(() async {
-              var dbFile = await getDbFile(source);
-              if (dbFile.fetched.v != true) {
-                var content = await fetch(source);
-                try {
-                  await fileFromPath(path).writeAsBytes(content, flush: true);
-                } catch (e) {
-                  await fileFromPath(path).parent.create(recursive: true);
-                  await fileFromPath(path).writeAsBytes(content, flush: true);
-                }
-                dbFile = cvFileStore.record(source).cv()..fetched.v = true;
-                await dbFile.put(await getDatabase(), merge: true);
-
-                // Cleanup
-                await cleanUp();
-
-                return content;
-              }
-              return await doRead();
-            });
-          } finally {
-            _fetchLockMap.remove(source);
+    return wrap(
+      () async {
+        if (!isRunningAsJavascript) {
+          // Handle io file if scheme is empty
+          var uri = _sourceUri(source);
+          // debugCacheWriteLn!('wrap $source ${uri?.scheme}');
+          if (uri?.scheme.isEmpty ?? false) {
+            return await fs.file(uri!.toFilePath()).readAsBytes();
           }
         }
+        var dbFile = await getDbFile(source);
+        var path = dbFile.path.v!;
+        Future<Uint8List> doRead() async {
+          return fileFromPath(path).readAsBytes();
+        }
 
-        return await doFetch();
-      }
-      return doRead();
-    }, prefix: 'get', details: source);
+        if (dbFile.fetched.v != true) {
+          Future<Uint8List> doFetch() async {
+            var lock = _fetchLockMap[source] ??= Lock();
+            try {
+              return await lock.synchronized(() async {
+                var dbFile = await getDbFile(source);
+                if (dbFile.fetched.v != true) {
+                  var content = await fetch(source);
+                  try {
+                    await fileFromPath(path).writeAsBytes(content, flush: true);
+                  } catch (e) {
+                    await fileFromPath(path).parent.create(recursive: true);
+                    await fileFromPath(path).writeAsBytes(content, flush: true);
+                  }
+                  dbFile = cvFileStore.record(source).cv()..fetched.v = true;
+                  await dbFile.put(await getDatabase(), merge: true);
+
+                  // Cleanup
+                  await cleanUp();
+
+                  return content;
+                }
+                return await doRead();
+              });
+            } finally {
+              _fetchLockMap.remove(source);
+            }
+          }
+
+          return await doFetch();
+        }
+        return doRead();
+      },
+      prefix: 'get',
+      details: source,
+    );
   }
 }

@@ -39,11 +39,14 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   }
 
   void _updateDuration() {
-    stateSink.add(AppAudioPlayerState(
+    stateSink.add(
+      AppAudioPlayerState(
         stateEnum: stateValue.stateEnum,
         playing: stateValue.playing,
         duration: _duration,
-        position: getCurrentPositionSync()));
+        position: getCurrentPositionSync(),
+      ),
+    );
   }
 
   void triggerDurationGetter() {
@@ -76,7 +79,8 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     audioPlayer.onPlayerStateChanged.listen((e) {
       if (debugPlayerDumpWriteLn != null) {
         debugPlayerDumpWriteLn!(
-            '$this onPlayerStateChanged $e${disposed ? ' [disposed]' : ''}');
+          '$this onPlayerStateChanged $e${disposed ? ' [disposed]' : ''}',
+        );
       }
       if (!disposed) {
         return;
@@ -99,11 +103,14 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
           break;
       }
 
-      stateSink.add(AppAudioPlayerState(
+      stateSink.add(
+        AppAudioPlayerState(
           stateEnum: stateEnum,
           playing: playing,
           duration: _duration,
-          position: getCurrentPositionSync()));
+          position: getCurrentPositionSync(),
+        ),
+      );
 
       triggerDurationGetter();
     });
@@ -111,7 +118,8 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     audioPlayer.onDurationChanged.listen((duration) {
       if (debugPlayerDumpWriteLn != null) {
         debugPlayerDumpWriteLn!(
-            '$this onDurationChanged $duration${disposed ? ' [disposed]' : ''}');
+          '$this onDurationChanged $duration${disposed ? ' [disposed]' : ''}',
+        );
       }
       if (!disposed) {
         return;

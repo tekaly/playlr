@@ -9,8 +9,9 @@ export 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 
 FileCacheDatabase? globalCacheOrNull;
 final _lock = Lock();
-Future<FileCacheDatabase> initCacheDatabase(
-    {required String packageName}) async {
+Future<FileCacheDatabase> initCacheDatabase({
+  required String packageName,
+}) async {
   if (globalCacheOrNull != null) {
     return globalCacheOrNull!;
   }
@@ -24,13 +25,15 @@ Future<FileCacheDatabase> initCacheDatabase(
     if (!kIsWeb) {
       fs = app.fs;
       path =
-          (await fs.getApplicationDocumentsDirectory(packageName: packageName))
-              .path;
+          (await fs.getApplicationDocumentsDirectory(
+            packageName: packageName,
+          )).path;
     }
     var db = FileCacheDatabaseFlutter(
-        databaseFactory: databaseFactory,
-        options: FileCacheDatabaseOptions(fileCountMax: 100),
-        path: path);
+      databaseFactory: databaseFactory,
+      options: FileCacheDatabaseOptions(fileCountMax: 100),
+      path: path,
+    );
     globalCacheOrNull = db;
     return db;
   });

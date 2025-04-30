@@ -12,3 +12,4 @@ pubspec.lock
 build/
 
 /packages_flutter/playlr_app/
+.flutter*

@@ -15,24 +15,30 @@ import 'package:playlr_simple_player_app/src/test/just_audio_test_menu.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 
-var assetSongExample1 =
-    AppAudioPlayerSong(globalCacheOrNull!.assetToSource(assetAudioExample1));
+import 'src/menu_recorder.dart';
+
+var assetSongExample1 = AppAudioPlayerSong(
+  globalCacheOrNull!.assetToSource(assetAudioExample1),
+);
 var networkExample1 = AppAudioPlayerSong(
-    'https://media.howob.com/audio_test/sample-9s-mono.mp3'
-    //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
-    );
+  'https://media.howob.com/audio_test/sample-9s-mono.mp3',
+  //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
+);
 
 var networkExampleGood2 = AppAudioPlayerSong(
-    'https://media.howob.com/audio_test/soundhelix_song_1_30s.mp3');
+  'https://media.howob.com/audio_test/soundhelix_song_1_30s.mp3',
+);
 
 var networkExampleGood6 = AppAudioPlayerSong(
-    'https://media.howob.com/audio_test/free_test_data_15s.mp3.mp3');
-var networkExampleMidiGood7 =
-    AppAudioPlayerSong('https://media.howob.com/audio_test/pop.mid');
+  'https://media.howob.com/audio_test/free_test_data_15s.mp3.mp3',
+);
+var networkExampleMidiGood7 = AppAudioPlayerSong(
+  'https://media.howob.com/audio_test/pop.mid',
+);
 var networkExample3Cors = AppAudioPlayerSong(
-    'https://samplelib.com/lib/preview/mp3/sample-12s.mp3'
-    //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
-    );
+  'https://samplelib.com/lib/preview/mp3/sample-12s.mp3',
+  //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
+);
 
 AppAudioPlayerSong localFileSong(String path) =>
     AppAudioPlayerSong(join(kIsWeb ? 'assets/assets' : 'assets', path));
@@ -40,11 +46,13 @@ AppAudioPlayerSong localFileSong(String path) =>
 var localGood2 = localFileSong('audio/soundhelix_song_1_30s.mp3');
 var localGood3 = localFileSong('audio/free_test_data_15s.mp3');
 var localMidi = localFileSong('audio/pop.mid');
-var networkExample4Local =
-    AppAudioPlayerSong('assets/assets/audio/example1.mp3');
+var networkExample4Local = AppAudioPlayerSong(
+  'assets/assets/audio/example1.mp3',
+);
 var fileExample4Local = AppAudioPlayerSong('assets/audio/example1.mp3');
 var networkExample2Missing = AppAudioPlayerSong(
-    'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/dummy/test%2Fexpected%2Ftest.json?alt=media');
+  'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/dummy/test%2Fexpected%2Ftest.json?alt=media',
+);
 
 var appAudioPlayer = appAudioPlayerJustAudio;
 
@@ -89,9 +97,7 @@ Future<void> mainTestMenu() async {
       });
       item('fetch asset', () async {
         var db = await initCache();
-        await db.getContent(
-          db.assetToSource(assetAudioExample1),
-        );
+        await db.getContent(db.assetToSource(assetAudioExample1));
       });
       item('dump cache asset', () async {
         var db = await initCache();
@@ -125,8 +131,11 @@ Future<void> mainTestMenu() async {
     item('play network midi file', () async {
       await appAudioPlayer.playSong(networkExampleMidiGood7);
     });
-    appAudioPlayerMenu(AppAudioPlayer appAudioPlayer,
-        {String? name, @Deprecated("dev only") bool? solo}) {
+    appAudioPlayerMenu(
+      AppAudioPlayer appAudioPlayer, {
+      String? name,
+      @Deprecated("dev only") bool? solo,
+    }) {
       // print('player $appAudioPlayer solo $solo');
       menu(name ?? 'use default ($appAudioPlayer)', () {
         enter(() {
@@ -166,9 +175,7 @@ Future<void> mainTestMenu() async {
           await appAudioPlayer.playSong(networkExample1);
         });
         item('play network 2 missing', () async {
-          await appAudioPlayer.playSong(
-            networkExample2Missing,
-          );
+          await appAudioPlayer.playSong(networkExample2Missing);
         });
         item('play network 3 cors', () async {
           await appAudioPlayer.playSong(networkExample3Cors);
@@ -216,9 +223,16 @@ Future<void> mainTestMenu() async {
       }, solo: solo);
     }
 
-    appAudioPlayerMenu(appAudioPlayerJustAudio,
-        name: 'use JustAudio (default just_audio)');
-    appAudioPlayerMenu(appAudioPlayerBlueFire,
-        name: 'use BlueFire (legacy audioplayers)');
+    appAudioPlayerMenu(
+      appAudioPlayerJustAudio,
+      name: 'use JustAudio (default just_audio)',
+    );
+    appAudioPlayerMenu(
+      appAudioPlayerBlueFire,
+      name: 'use BlueFire (legacy audioplayers)',
+    );
+    menu('recorder', () {
+      menuRecorder();
+    });
   }, showConsole: true);
 }

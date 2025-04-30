@@ -37,10 +37,11 @@ void main() {
         }
       });
       db = FileCacheDatabase(
-          fs: newFileSystemMemory(),
-          databaseFactory: newDatabaseFactoryMemory(),
-          httpClientFactory: httpClientFactoryMemory,
-          options: FileCacheDatabaseOptions(fileCountMax: 2));
+        fs: newFileSystemMemory(),
+        databaseFactory: newDatabaseFactoryMemory(),
+        httpClientFactory: httpClientFactoryMemory,
+        options: FileCacheDatabaseOptions(fileCountMax: 2),
+      );
     });
     tearDown(() async {
       await server.close(force: true);

@@ -11,7 +11,8 @@ import 'package:playlr_audio_player_just_audio/src/player/source.dart';
 var debugJustAudioPlayer = false; // devWarning(true);
 
 AppAudioPlayerStateEnum processingStateToStateEnum(
-    ProcessingState processingState) {
+  ProcessingState processingState,
+) {
   AppAudioPlayerStateEnum stateEnum = AppAudioPlayerStateEnum.none;
   switch (processingState) {
     case ProcessingState.ready:
@@ -46,17 +47,21 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (debugPlayerDumpWriteLn != null) {
         // debugPlayerDumpWriteLn!('playbackEventStream ${e.processingState} ${e.updatePosition} / ${e.duration}');
         debugPlayerDumpWriteLn!(
-            'playbackEventStream $e${disposed ? [', disposed'] : ''}');
+          'playbackEventStream $e${disposed ? [', disposed'] : ''}',
+        );
       }
       if (disposed) {
         return;
       }
 
-      stateSink.add(AppAudioPlayerState(
+      stateSink.add(
+        AppAudioPlayerState(
           stateEnum: processingStateToStateEnum(e.processingState),
           playing: stateValue.playing,
           position: e.updatePosition,
-          duration: e.duration));
+          duration: e.duration,
+        ),
+      );
       if (e.processingState == ProcessingState.ready) {
         triggerDurationGetter();
       }
@@ -65,7 +70,8 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (debugPlayerDumpWriteLn != null) {
         // debugPlayerDumpWriteLn!('$this state ${e.processingState}, playing ${e.playing}, jaPlaying: ${jaAudioPlayer.playing}');
         debugPlayerDumpWriteLn!(
-            'playerStateStream $e${disposed ? [', disposed'] : ''}');
+          'playerStateStream $e${disposed ? [', disposed'] : ''}',
+        );
       }
       if (disposed) {
         return;
@@ -73,17 +79,23 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (e.processingState == ProcessingState.completed) {
         // If completed, pause it otherwise play cannot work
         stop().unawait();
-        stateSink.add(AppAudioPlayerState(
+        stateSink.add(
+          AppAudioPlayerState(
             stateEnum: processingStateToStateEnum(e.processingState),
             playing: false,
             position: jaAudioPlayer.position,
-            duration: jaAudioPlayer.duration));
+            duration: jaAudioPlayer.duration,
+          ),
+        );
       } else {
-        stateSink.add(AppAudioPlayerState(
+        stateSink.add(
+          AppAudioPlayerState(
             stateEnum: processingStateToStateEnum(e.processingState),
             playing: jaAudioPlayer.playing,
             position: jaAudioPlayer.position,
-            duration: jaAudioPlayer.duration));
+            duration: jaAudioPlayer.duration,
+          ),
+        );
         positionSink.add(jaAudioPlayer.position);
       }
     });
@@ -116,11 +128,14 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
 
   void _addCurrentState() {
     var position = jaAudioPlayer.position;
-    stateSink.add(AppAudioPlayerState(
+    stateSink.add(
+      AppAudioPlayerState(
         stateEnum: stateValue.stateEnum,
         playing: stateValue.playing,
         position: position,
-        duration: stateValue.duration));
+        duration: stateValue.duration,
+      ),
+    );
     positionSink.add(jaAudioPlayer.position);
   }
 

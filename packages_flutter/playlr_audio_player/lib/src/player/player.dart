@@ -68,11 +68,12 @@ class AppAudioPlayerState {
     return _position ?? Duration.zero;
   }
 
-  AppAudioPlayerState(
-      {required this.stateEnum,
-      required this.playing,
-      required this.duration,
-      Duration? position}) {
+  AppAudioPlayerState({
+    required this.stateEnum,
+    required this.playing,
+    required this.duration,
+    Duration? position,
+  }) {
     _sw = Stopwatch()..start();
     _position = position;
   }
@@ -132,10 +133,12 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   static var _globalId = 0;
   late final _id = ++_globalId;
   final _stateSubject = BehaviorSubject<AppAudioPlayerState>.seeded(
-      AppAudioPlayerState(
-          stateEnum: AppAudioPlayerStateEnum.none,
-          playing: false,
-          duration: null));
+    AppAudioPlayerState(
+      stateEnum: AppAudioPlayerStateEnum.none,
+      playing: false,
+      duration: null,
+    ),
+  );
   final _positionSubject = BehaviorSubject<Duration?>.seeded(null);
 
   // Use JustAudio on the web
@@ -205,10 +208,12 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   final _poolLength = 2;
   final _players = <SongAudioPlayerImpl>[];
   final _stateSubject = BehaviorSubject<AppAudioPlayerState>.seeded(
-      AppAudioPlayerState(
-          stateEnum: AppAudioPlayerStateEnum.none,
-          playing: false,
-          duration: null));
+    AppAudioPlayerState(
+      stateEnum: AppAudioPlayerStateEnum.none,
+      playing: false,
+      duration: null,
+    ),
+  );
   final _positionSubject = BehaviorSubject<Duration?>.seeded(null);
 
   SongAudioPlayer? get currentPlayer => _currentPlayer;
@@ -307,9 +312,7 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   var linuxIndex = 0;
 
   // Start play but returns before play terminates
-  Future<SongAudioPlayer> playSong(
-    AppAudioPlayerSong song,
-  ) async {
+  Future<SongAudioPlayer> playSong(AppAudioPlayerSong song) async {
     // Stop current
     stop();
     var player = await loadSong(song);
@@ -338,12 +341,14 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
 
   Future<void> dumpPosition() async {
     globalCacheOrNull?.dumpLine(
-        'position: ${(await getCurrentPosition())?.inMilliseconds} ms');
+      'position: ${(await getCurrentPosition())?.inMilliseconds} ms',
+    );
   }
 
   Future<void> dumpPositionSync() async {
     globalCacheOrNull?.dumpLine(
-        'position: ${(getCurrentPositionSync())?.inMilliseconds} ms');
+      'position: ${(getCurrentPositionSync())?.inMilliseconds} ms',
+    );
   }
 
   @override
