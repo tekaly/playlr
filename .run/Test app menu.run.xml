@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Test app menu" type="FlutterRunConfigurationType" factoryName="Flutter">
-    <option name="additionalArgs" value="--web-port 8060" />
-    <option name="filePath" value="$PROJECT_DIR$/packages_flutter/playlr_simple_player_app/lib/main_test_menu.dart" />
-    <method v="2" />
-  </configuration>
-</component>

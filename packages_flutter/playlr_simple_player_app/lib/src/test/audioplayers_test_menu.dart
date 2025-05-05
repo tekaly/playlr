@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:playlr_simple_player_app/main_test_menu.dart';
+import 'package:tekartik_app_flutter_common_utils/asset/asset_bundle.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
@@ -15,6 +16,41 @@ void menuAudioPlayers() {
       audioPlayer!.resume().unawait();
     }
 
+    item('play file uri', () async {
+      var url = 'file://fileExample4Local.source';
+      await startPlay(url);
+    });
+    item('play asset uri', () async {
+      await audioPlayer?.dispose();
+      audioPlayer = AudioPlayer();
+      var source = AssetSource('audio/example1.mp3');
+      write('source: $source');
+      await audioPlayer!.setSource(source);
+
+      audioPlayer!.resume().unawait();
+    });
+
+    item('play asset uri seek', () async {
+      await audioPlayer?.dispose();
+      var player = audioPlayer = AudioPlayer();
+      var source = AssetSource('audio/example1.mp3');
+      write('source: $source');
+      await player.setSource(source);
+
+      await player.seek(Duration(seconds: 4));
+      await player.resume();
+    });
+    item('bytes', () async {
+      await audioPlayer?.dispose();
+      audioPlayer = AudioPlayer();
+      var source = BytesSource(
+        (await tkRootBundle.loadBytes('assets/audio/example1.mp3')),
+      );
+      write('source: $source');
+      await audioPlayer!.setSource(source);
+
+      audioPlayer!.resume().unawait();
+    });
     item('play local mp3', () async {
       var url = kIsWeb ? networkExample4Local.source : fileExample4Local.source;
       await startPlay(url);

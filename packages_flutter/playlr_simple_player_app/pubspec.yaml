@@ -60,7 +60,9 @@ dependencies:
       path: test_menu_flutter
     version: '>=0.2.3'
   audioplayers: '>=6.0.0'
+  audioplayers_linux:
   just_audio:
+  # For linux support
   just_audio_mpv:
   # Need to be added by the app for windows support
   just_audio_windows:
@@ -88,6 +90,16 @@ dependencies:
       url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_assets
       ref: dart3a
+  tekartik_app_dev_menu:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_dev_menu
+  tekartik_app_flutter_common_utils:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      ref: dart3a
+      path: app_common
 dev_dependencies:
   flutter_test:
     sdk: flutter

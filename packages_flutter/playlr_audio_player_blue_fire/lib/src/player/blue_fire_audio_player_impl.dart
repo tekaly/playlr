@@ -58,7 +58,9 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
         while (_active) {
           // We don't seem to get the duration right
           _duration = await audioPlayer.getDuration();
-          // devPrint('$this getting duration $_duration');
+          if (debugPlayerDumpWriteLn != null) {
+            debugPlayerDumpWriteLn!('$this triggerDurationGetter $_duration');
+          }
           if ((_duration ?? Duration.zero) != Duration.zero) {
             _updateDuration();
 
@@ -82,7 +84,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
           '$this onPlayerStateChanged $e${disposed ? ' [disposed]' : ''}',
         );
       }
-      if (!disposed) {
+      if (disposed) {
         return;
       }
       var playing = false;
@@ -205,4 +207,9 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
 
   @override
   String toString() => 'BlueFire${super.toString()}';
+
+  @override
+  Future<void> setVolume(double volume) async {
+    await audioPlayer.setVolume(volume);
+  }
 }

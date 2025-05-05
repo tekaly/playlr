@@ -14,8 +14,18 @@ import 'package:playlr_simple_player_app/src/test/just_audio_test_menu.dart';
 // ignore: depend_on_referenced_packages
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
-
+import 'package:tekartik_app_dev_menu/dev_menu.dart';
 import 'src/menu_recorder.dart';
+
+var kvDebugging = 'debugging'.kvFromVar();
+bool get debugging {
+  return parseBool(kvDebugging.value) ?? false;
+}
+
+var kvPlayer = 'player'.kvFromVar();
+bool get isJustAudio {
+  return kvPlayer.value == 'just_audio' || kvPlayer.value == null;
+}
 
 var assetSongExample1 = AppAudioPlayerSong(
   globalCacheOrNull!.assetToSource(assetAudioExample1),
@@ -54,7 +64,8 @@ var networkExample2Missing = AppAudioPlayerSong(
   'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/dummy/test%2Fexpected%2Ftest.json?alt=media',
 );
 
-var appAudioPlayer = appAudioPlayerJustAudio;
+var appAudioPlayer =
+    isJustAudio ? appAudioPlayerJustAudio : appAudioPlayerBlueFire;
 
 Future<void> main() async {
   await mainTestMenu();
@@ -73,11 +84,24 @@ Future<void> mainTestMenu() async {
   });
   mainMenuFlutter(() {
     enter(() async {
-      //debugPlayerDumpWriteLn = devWarning(write);
+      debugBlueFireAudioPlayer = debugging;
+      debugJustAudioPlayer = debugging;
+      if (debugging) {
+        debugPlayerDumpWriteLn = write;
+      }
+
       debugCacheWriteLn = write;
+      write('debugging $debugging');
       if (debugPlayerDumpWriteLn != null) {
         debugPlayerDumpWriteLn!('Dumper on');
       }
+      write('using ${isJustAudio ? 'just_audio' : 'blue_fire'}');
+    });
+    keyValuesMenu('key', [kvDebugging, kvPlayer]);
+    item('toggle impl debugging', () {
+      var debugging = !debugBlueFireAudioPlayer;
+      debugBlueFireAudioPlayer = debugging;
+      write('debugging $debugging');
     });
     menuAudioPlayers();
     menuJustAudio();
@@ -111,7 +135,64 @@ Future<void> mainTestMenu() async {
 
     item('play asset', () async {
       await initCache();
-      await appAudioPlayer.playSong(assetSongExample1);
+      await appAudioPlayer.stop();
+      await appAudioPlayer.stateStream.firstWhere((state) {
+        write('waiting for ready $state');
+        return state.isPausedAndReadyForLoading;
+      });
+      write('ready');
+      var completer = Completer();
+      var subscription = appAudioPlayer.stateStream.listen((state) {
+        write('#state $state');
+        if (state.stateEnum == AppAudioPlayerStateEnum.completed) {
+          completer.complete();
+        }
+      });
+      write('playing song');
+      try {
+        await appAudioPlayer.playSong(assetSongExample1);
+        write('waiting for state');
+        await completer.future;
+      } finally {
+        subscription.cancel();
+      }
+    });
+    item('load, seek then play asset', () async {
+      await initCache();
+      var player = await appAudioPlayer.loadSong(assetSongExample1);
+
+      await player.stateStream.firstWhere((state) {
+        write('waiting for ready $state');
+        return state.isReady;
+      });
+      write('ready');
+      write('seeking');
+      await player.seek(const Duration(seconds: 3));
+      player.fadeIn();
+
+      /// important to resume after a seek
+      await player.resume();
+      write('play done');
+    });
+    item('load then play from 5s to 7s', () async {
+      await initCache();
+      var player = await appAudioPlayer.loadSong(assetSongExample1);
+      await player.playFromTo(
+        from: const Duration(seconds: 5),
+        to: const Duration(seconds: 7),
+      );
+
+      write('done');
+    });
+    item('load then play from 6s to the end', () async {
+      await initCache();
+      var player = await appAudioPlayer.loadSong(assetSongExample1);
+      await player.playFromTo(from: const Duration(seconds: 6));
+
+      write('done');
+    });
+    item('stop', () async {
+      await appAudioPlayer.stop();
     });
     // quick play test
     item('play local mp3 file', () async {

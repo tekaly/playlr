@@ -8,7 +8,8 @@ import 'package:rxdart/rxdart.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_common_utils/list_utils.dart' show listLast;
-
+// ignore: depend_on_referenced_packages
+import 'package:tekartik_common_utils/num_utils.dart';
 import '../import.dart';
 
 var _positionRefreshDelay = 100;
@@ -35,6 +36,16 @@ class AppAudioPlayerState {
   final bool playing;
   final Duration? duration;
 
+  bool get isPreparing => stateEnum == AppAudioPlayerStateEnum.preparing;
+
+  bool get isReady =>
+      (stateEnum == AppAudioPlayerStateEnum.none ||
+          stateEnum == AppAudioPlayerStateEnum.ready) &&
+      duration != null;
+
+  /// Is paused and ready for loading
+  bool get isPausedAndReadyForLoading => !isPreparing && !playing;
+
   @override
   int get hashCode => stateEnum.hashCode + playing.hashCode;
 
@@ -45,6 +56,9 @@ class AppAudioPlayerState {
         return false;
       }
       if (playing != other.playing) {
+        return false;
+      }
+      if (duration != other.duration) {
         return false;
       }
       // Want at lease 10ms change
@@ -92,6 +106,7 @@ abstract class AppOrSongAudioPlayer {
   Future<void> seek(Duration position);
   Future<void> stop();
   Future<void> pause();
+  Future<void> setVolume(double volume);
 
   // Implemented
   Stream<Duration?> get positionStream;
@@ -116,6 +131,92 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
     var position = await getCurrentPosition();
     if (position != null) {
       await seek(position + duration);
+    }
+  }
+
+  Future<void> playFromTo({Duration? from, Duration? to}) async {
+    await pause();
+    await stateStream.firstWhere((state) {
+      //write('waiting for ready $state');
+      return state.isReady;
+    });
+    if (from != null) {
+      await seek(from);
+      fadeIn();
+    }
+    resume();
+    var completer = Completer();
+    late StreamSubscription stateSubscription;
+    late StreamSubscription positionSubscription;
+    void end() {
+      stateSubscription.cancel();
+      positionSubscription.cancel();
+    }
+
+    stateSubscription = stateStream.listen((state) {
+      if (state.stateEnum == AppAudioPlayerStateEnum.completed) {
+        end();
+        completer.safeComplete();
+      }
+    });
+
+    positionSubscription = positionStream.listen((position) async {
+      if (to != null) {
+        if (position != null && position >= to) {
+          end();
+          await fadeOut();
+          await pause();
+          completer.safeComplete();
+        }
+      }
+    });
+    try {
+      await completer.future;
+    } finally {
+      positionSubscription.cancel();
+      stateSubscription.cancel();
+    }
+  }
+
+  Future<void> fadeIn({Duration? duration}) async {
+    var sw = Stopwatch()..start();
+    duration ??= Duration(milliseconds: 500);
+    Duration? startPlayingDuration;
+    while (true) {
+      var elapsed = sw.elapsed;
+      if (stateValue.playing) {
+        startPlayingDuration ??= elapsed;
+        var position = ((elapsed.inMilliseconds -
+                    startPlayingDuration.inMilliseconds) /
+                duration.inMilliseconds)
+            .bounded(0, 1);
+        setVolume(position);
+      }
+      await sleep(10);
+      if (elapsed > duration) {
+        setVolume(1);
+        break;
+      }
+    }
+  }
+
+  Future<void> fadeOut({Duration? duration}) async {
+    var sw = Stopwatch()..start();
+    duration ??= Duration(milliseconds: 500);
+
+    while (true) {
+      var elapsed = sw.elapsed;
+      var position = (elapsed.inMilliseconds / duration.inMilliseconds).bounded(
+        0,
+        1,
+      );
+      setVolume(1 - position);
+
+      await sleep(10);
+      if (elapsed > duration) {
+        setVolume(0);
+        break;
+      }
     }
   }
 
@@ -333,6 +434,11 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   @override
   Future<void> play() async {
     await _currentPlayer?.play();
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {
+    _currentPlayer?.setVolume(volume);
   }
 
   @override

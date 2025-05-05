@@ -79,30 +79,22 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (e.processingState == ProcessingState.completed) {
         // If completed, pause it otherwise play cannot work
         stop().unawait();
-        stateSink.add(
-          AppAudioPlayerState(
-            stateEnum: processingStateToStateEnum(e.processingState),
-            playing: false,
-            position: jaAudioPlayer.position,
-            duration: jaAudioPlayer.duration,
-          ),
+        _addCurrentState(
+          stateEnum: processingStateToStateEnum(e.processingState),
+          playing: false,
         );
       } else {
-        stateSink.add(
-          AppAudioPlayerState(
-            stateEnum: processingStateToStateEnum(e.processingState),
-            playing: jaAudioPlayer.playing,
-            position: jaAudioPlayer.position,
-            duration: jaAudioPlayer.duration,
-          ),
+        _addCurrentState(
+          stateEnum: processingStateToStateEnum(e.processingState),
         );
         positionSink.add(jaAudioPlayer.position);
       }
     });
 
-    // if (devWarning(true)) {
     // ignore: dead_code
     if (false) {
+      // devWarning(true)) {
+      //if (false) {
       jaAudioPlayer.processingStateStream.listen((e) {
         if (debugPlayerDumpWriteLn != null) {
           debugPlayerDumpWriteLn!('processingStateStream $e');
@@ -126,17 +118,19 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
     });
   }
 
-  void _addCurrentState() {
+  void _addCurrentState({AppAudioPlayerStateEnum? stateEnum, bool? playing}) {
+    playing ??= jaAudioPlayer.playing;
     var position = jaAudioPlayer.position;
-    stateSink.add(
-      AppAudioPlayerState(
-        stateEnum: stateValue.stateEnum,
-        playing: stateValue.playing,
-        position: position,
-        duration: stateValue.duration,
-      ),
+    var duration = jaAudioPlayer.duration;
+
+    var newState = AppAudioPlayerState(
+      stateEnum: stateEnum ?? stateValue.stateEnum,
+      playing: playing,
+      position: position,
+      duration: duration,
     );
-    positionSink.add(jaAudioPlayer.position);
+    stateSink.add(newState);
+    positionSink.add(position);
   }
 
   bool get _active => true;
@@ -151,7 +145,10 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
         while (_active) {
           // We don't seem to get the duration right
           var duration = jaAudioPlayer.duration;
-          // devPrint('$this getting duration $duration');
+          if (debugPlayerDumpWriteLn != null) {
+            debugPlayerDumpWriteLn!('$this triggerDurationGetter $duration');
+          }
+
           if ((duration ?? Duration.zero) != Duration.zero) {
             _addCurrentState();
 
@@ -166,7 +163,7 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   @override
   Future<void> resume() async {
     if (debugPlayerDumpWriteLn != null) {
-      debugPlayerDumpWriteLn!('jaAudioPlayer.play()');
+      debugPlayerDumpWriteLn!('jaAudioPlayer.resume()');
     }
 
     await jaAudioPlayer.play();
@@ -193,6 +190,14 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   }
 
   @override
+  Future<void> setVolume(double volume) async {
+    if (debugPlayerDumpWriteLn != null) {
+      debugPlayerDumpWriteLn!('jaAudioPlayer.setVolume($volume)');
+    }
+    jaAudioPlayer.setVolume(volume);
+  }
+
+  @override
   Future<void> seek(Duration position) async {
     // This crashes on linus if not ready
     try {
@@ -203,7 +208,13 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   }
 
   @override
-  Future<void> play() => jaAudioPlayer.play();
+  Future<void> play() async {
+    if (debugPlayerDumpWriteLn != null) {
+      debugPlayerDumpWriteLn!('jaAudioPlayer.play()');
+    }
+
+    await jaAudioPlayer.play();
+  }
 
   @override
   Future<Duration?> getDuration() async => jaAudioPlayer.duration;
