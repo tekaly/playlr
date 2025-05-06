@@ -18,11 +18,11 @@ class FileCacheDatabaseFlutter extends FileCacheDatabase {
   // Handling assets
   @override
   Future<Uint8List> fetch(String source) async {
-    var assetUri = parseAssetOrNull(source);
-    if (assetUri != null) {
+    var assetKey = parseAssetOrNull(source);
+    if (assetKey != null) {
       return await wrap(
         () async {
-          var path = assetUri.path;
+          var path = assetKey;
           return byteDataToUint8List(await rootBundle.load(path));
         },
         prefix: 'asset',
@@ -33,15 +33,17 @@ class FileCacheDatabaseFlutter extends FileCacheDatabase {
   }
 }
 
+const _assetPrefix = 'asset:';
+
 extension FileCacheDatabaseFlutterExt on FileCacheDatabase {
-  Uri? parseAssetOrNull(String source) {
-    if (source.startsWith('asset:')) {
-      return Uri.parse(source);
+  String? parseAssetOrNull(String source) {
+    if (source.startsWith(_assetPrefix)) {
+      return source.substring(_assetPrefix.length);
     }
     return null;
   }
 
   String assetToSource(String asset) {
-    return 'asset:$asset';
+    return '$_assetPrefix$asset';
   }
 }
