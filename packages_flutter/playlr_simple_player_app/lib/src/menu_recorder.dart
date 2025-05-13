@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:playlr_audio_recorder/streamer.dart';
+import 'package:playlr_audio_recorder/volume_widget.dart';
 import 'package:playlr_simple_player_app/src/import.dart';
 // ignore: depend_on_referenced_packages
 import 'package:record/record.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 
 void menuRecorder() {
@@ -12,7 +15,13 @@ void menuRecorder() {
       write('Stream length: ${value.length}');
     });
     await sleep(5000);
-    subscription.cancel();
+    subscription.cancel().unawait();
+  });
+  item('waveform', () async {
+    await ContentNavigator.pushBuilder<void>(
+      buildContext!,
+      builder: (_) => const WaveformScreen(),
+    );
   });
   item('raw_recorder', () async {
     final record = AudioRecorder();
@@ -43,6 +52,48 @@ void menuRecorder() {
       // ... or cancel it (and implicitly remove file/blob).
       await record.cancel();
     }
-    record.dispose(); // As always
+    record.dispose().unawait(); // As always
   });
+}
+
+class WaveformScreen extends StatefulWidget {
+  const WaveformScreen({super.key});
+
+  @override
+  State<WaveformScreen> createState() => _WaveformScreenState();
+}
+
+class _WaveformScreenState extends State<WaveformScreen> {
+  var record = AudioStreamer();
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Waveform')),
+      body: Center(
+        child: Column(
+          children: [
+            const Text('Waveform'),
+            WaveformProgressBar(
+              audioData: record.streamPcm16bits().map((event) {
+                // Convert the Int16List to a List<double>
+                return event.map((e) => e.toDouble()).toList();
+              }),
+              barCount: 4,
+              backgroundColor: Colors.grey,
+              waveColor: Colors.white,
+              width: 100,
+              maxHeight: 200,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    //body: const WaveformWidget(),
+  }
 }

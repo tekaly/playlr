@@ -66,7 +66,7 @@ class FileCacheDatabase {
     try {
       await databaseFactory.deleteDatabase(databasePath);
     } catch (e) {
-      print('error clearing db $e');
+      // print('error clearing db $e');
     }
     await deleteDirectory(dataPath);
   }
@@ -186,7 +186,7 @@ class FileCacheDatabase {
         try {
           await fileFromPath(path).delete();
         } catch (e) {
-          print('error $e deleting file $path');
+          // print('error $e deleting file $path');
         }
         await file.delete(db);
       }

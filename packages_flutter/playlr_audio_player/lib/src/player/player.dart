@@ -14,30 +14,50 @@ import '../import.dart';
 
 var _positionRefreshDelay = 100;
 
-// Debug only
+/// Debug only
 DumpWriteLnFunction? debugPlayerDumpWriteLn;
 
+/// Audio player song
 class AppAudioPlayerSong {
+  /// Source of the song
   final String source;
 
+  /// Constructor
   AppAudioPlayerSong(this.source);
 }
 
+/// Audio player state
 enum AppAudioPlayerStateEnum {
+  /// none
   none,
+
+  /// preparing
   preparing,
+
+  /// ready
   ready,
+
+  /// completed
   completed, // end of song
 }
 
+/// Audio player state
 class AppAudioPlayerState {
   late final Stopwatch _sw;
+
+  /// state
   final AppAudioPlayerStateEnum stateEnum;
+
+  /// playing
   final bool playing;
+
+  /// Duration
   final Duration? duration;
 
+  /// Is preparing
   bool get isPreparing => stateEnum == AppAudioPlayerStateEnum.preparing;
 
+  /// Is ready for resume
   bool get isReady =>
       (stateEnum == AppAudioPlayerStateEnum.none ||
           stateEnum == AppAudioPlayerStateEnum.ready) &&
@@ -72,7 +92,7 @@ class AppAudioPlayerState {
 
   late final Duration? _position;
 
-  // Always accurate
+  /// Always accurate
   Duration get position {
     if (stateEnum == AppAudioPlayerStateEnum.ready &&
         playing &&
@@ -82,6 +102,7 @@ class AppAudioPlayerState {
     return _position ?? Duration.zero;
   }
 
+  /// Player state
   AppAudioPlayerState({
     required this.stateEnum,
     required this.playing,
@@ -97,36 +118,66 @@ class AppAudioPlayerState {
       '[player_state] ${stateEnum.name} $playing $position / $duration';
 }
 
+/// Audio player interface
 abstract class AppOrSongAudioPlayer {
   /// Current position
   Future<Duration?> getCurrentPosition();
+
+  /// Resume the player
   Future<void> resume();
+
+  /// To call after resume
+  Future<void> setPlaybackRate(double rate);
+
+  /// Play
   Future<void> play();
+
+  /// Get current duration
   Future<Duration?> getDuration();
+
+  /// Seek to a position
   Future<void> seek(Duration position);
+
+  /// Stop the player
   Future<void> stop();
+
+  /// Pause the player
   Future<void> pause();
+
+  /// Set volume
   Future<void> setVolume(double volume);
 
-  // Implemented
+  /// position stream
   Stream<Duration?> get positionStream;
+
+  /// State stream
   Stream<AppAudioPlayerState> get stateStream;
+
+  /// Current state
   AppAudioPlayerState get stateValue;
+
+  /// Current position
   Duration? getCurrentPositionSync();
 }
 
 /// Single song audio player
 abstract class SongAudioPlayer implements AppOrSongAudioPlayer {
+  /// Dispose
   void dispose();
+
+  /// Disposed
   bool get disposed;
 }
 
+/// Mixin for song audio player
 mixin SongAudioPlayerMixin implements SongAudioPlayer {
   @override
   bool disposed = false;
 }
 
+/// Extension
 extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
+  /// Forward
   Future<void> forward(Duration duration) async {
     var position = await getCurrentPosition();
     if (position != null) {
@@ -134,7 +185,12 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
     }
   }
 
-  Future<void> playFromTo({Duration? from, Duration? to}) async {
+  /// Play helper
+  Future<void> playFromTo({
+    Duration? from,
+    Duration? to,
+    double? playbackRate,
+  }) async {
     await pause();
     await stateStream.firstWhere((state) {
       //write('waiting for ready $state');
@@ -142,10 +198,13 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
     });
     if (from != null) {
       await seek(from);
-      fadeIn();
+      fadeIn().unawait();
     }
-    resume();
-    var completer = Completer();
+    resume().unawait();
+    if (playbackRate != null) {
+      setPlaybackRate(playbackRate).unawait();
+    }
+    var completer = Completer<void>();
     late StreamSubscription stateSubscription;
     late StreamSubscription positionSubscription;
     void end() {
@@ -173,14 +232,15 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
     try {
       await completer.future;
     } finally {
-      positionSubscription.cancel();
-      stateSubscription.cancel();
+      positionSubscription.cancel().unawait();
+      stateSubscription.cancel().unawait();
     }
   }
 
+  /// Face in
   Future<void> fadeIn({Duration? duration}) async {
     var sw = Stopwatch()..start();
-    duration ??= Duration(milliseconds: 500);
+    duration ??= const Duration(milliseconds: 500);
     Duration? startPlayingDuration;
     while (true) {
       var elapsed = sw.elapsed;
@@ -190,19 +250,20 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
                     startPlayingDuration.inMilliseconds) /
                 duration.inMilliseconds)
             .bounded(0, 1);
-        setVolume(position);
+        setVolume(position).unawait();
       }
       await sleep(10);
       if (elapsed > duration) {
-        setVolume(1);
+        setVolume(1).unawait();
         break;
       }
     }
   }
 
+  /// Fade out
   Future<void> fadeOut({Duration? duration}) async {
     var sw = Stopwatch()..start();
-    duration ??= Duration(milliseconds: 500);
+    duration ??= const Duration(milliseconds: 500);
 
     while (true) {
       var elapsed = sw.elapsed;
@@ -210,23 +271,26 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
         0,
         1,
       );
-      setVolume(1 - position);
+      setVolume(1 - position).unawait();
 
       await sleep(10);
       if (elapsed > duration) {
-        setVolume(0);
+        setVolume(0).unawait();
         break;
       }
     }
   }
 
+  /// True if the player is playing
   bool isPlayingSync() {
     return stateValue.playing;
   }
 }
 
+/// Mixin for app audio player
 mixin AppAudioPlayerMixin on AppAudioPlayer {}
 
+/// Base class for app audio player
 abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   // To define
   set disposed(bool disposed);
@@ -247,6 +311,7 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   @override
   Stream<AppAudioPlayerState> get stateStream => _stateSubject.distinct();
 
+  /// State sink
   Sink<AppAudioPlayerState> get stateSink => _stateSubject.sink;
 
   @override
@@ -255,6 +320,7 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   @override
   Stream<Duration?> get positionStream => _positionSubject.distinct();
 
+  /// Position sink
   Sink<Duration?> get positionSink => _positionSubject.sink;
 
   @mustCallSuper
@@ -283,6 +349,7 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
     }
   }
 
+  /// Constructor
   SongAudioPlayerImpl() {
     () async {
       await for (var position in positionStream) {
@@ -296,6 +363,7 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   String toString() => 'Player($_id)';
 }
 
+/// App audio player
 abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   late final bool _useJaAudioPlayer;
 
@@ -408,16 +476,15 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
     return impl;
   }
 
+  /// Create a new audio player instance from bytes
   SongAudioPlayer newAudioPlayerInstanceFromBytes(Uint8List data);
 
-  var linuxIndex = 0;
-
-  // Start play but returns before play terminates
+  /// Start play but returns before play terminates
   Future<SongAudioPlayer> playSong(AppAudioPlayerSong song) async {
     // Stop current
-    stop();
+    stop().unawait();
     var player = await loadSong(song);
-    player.play();
+    player.play().unawait();
     return player;
   }
 
@@ -432,26 +499,33 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   }
 
   @override
+  Future<void> setPlaybackRate(double rate) async {
+    await _currentPlayer?.setPlaybackRate(rate);
+  }
+
+  @override
   Future<void> play() async {
     await _currentPlayer?.play();
   }
 
   @override
   Future<void> setVolume(double volume) async {
-    _currentPlayer?.setVolume(volume);
+    await _currentPlayer?.setVolume(volume);
   }
 
   @override
   Duration? getCurrentPositionSync() =>
       _currentPlayer?.getCurrentPositionSync();
 
+  /// Dump the current position
   Future<void> dumpPosition() async {
     globalCacheOrNull?.dumpLine(
       'position: ${(await getCurrentPosition())?.inMilliseconds} ms',
     );
   }
 
-  Future<void> dumpPositionSync() async {
+  /// Dump the current position synchronously
+  void dumpPositionSync() {
     globalCacheOrNull?.dumpLine(
       'position: ${(getCurrentPositionSync())?.inMilliseconds} ms',
     );

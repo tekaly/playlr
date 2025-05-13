@@ -1,9 +1,8 @@
 import 'dart:io' as io;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-
-import 'package:audioplayers/audioplayers.dart';
 // ignore: implementation_imports
 import 'package:playlr_audio_player/src/import.dart';
 // ignore: implementation_imports
@@ -170,6 +169,14 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
       await _ioSourceReady;
     }
     await audioPlayer.resume();
+  }
+
+  @override
+  Future<void> setPlaybackRate(double rate) async {
+    if (debugPlayerDumpWriteLn != null) {
+      debugPlayerDumpWriteLn!('$this setPlaybackRate $rate');
+    }
+    await audioPlayer.setPlaybackRate(rate);
   }
 
   @override

@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:synchronized/synchronized.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_app_flutter_fs/fs.dart' as app;
+import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 
-import 'package:tekartik_app_flutter_sembast/sembast.dart';
 export 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 
+/// Global cache database
 FileCacheDatabase? globalCacheOrNull;
 final _lock = Lock();
+
+/// Initializes the cache database (if not already initialized).
 Future<FileCacheDatabase> initCacheDatabase({
   required String packageName,
 }) async {

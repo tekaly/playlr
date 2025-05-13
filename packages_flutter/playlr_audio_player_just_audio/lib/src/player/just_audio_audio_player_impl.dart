@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 // ignore: implementation_imports
 import 'package:playlr_audio_player/src/import.dart';
 // ignore: implementation_imports
 import 'package:playlr_audio_player/src/player/player.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:playlr_audio_player_just_audio/src/player/source.dart';
 
 var debugJustAudioPlayer = false; // devWarning(true);
@@ -13,7 +13,7 @@ var debugJustAudioPlayer = false; // devWarning(true);
 AppAudioPlayerStateEnum processingStateToStateEnum(
   ProcessingState processingState,
 ) {
-  AppAudioPlayerStateEnum stateEnum = AppAudioPlayerStateEnum.none;
+  var stateEnum = AppAudioPlayerStateEnum.none;
   switch (processingState) {
     case ProcessingState.ready:
       stateEnum = AppAudioPlayerStateEnum.ready;
@@ -170,6 +170,11 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   }
 
   @override
+  Future<void> setPlaybackRate(double rate) async {
+    await jaAudioPlayer.setSpeed(rate);
+  }
+
+  @override
   void dispose() {
     super.dispose();
     jaAudioPlayer.dispose();
@@ -194,7 +199,7 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
     if (debugPlayerDumpWriteLn != null) {
       debugPlayerDumpWriteLn!('jaAudioPlayer.setVolume($volume)');
     }
-    jaAudioPlayer.setVolume(volume);
+    await jaAudioPlayer.setVolume(volume);
   }
 
   @override

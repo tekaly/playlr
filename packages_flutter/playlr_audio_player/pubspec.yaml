@@ -18,6 +18,7 @@ dependencies:
       path: packages/playlr_audio_player_interface
       ref: dart3a
     version: '>=0.0.1'
+
   tekartik_file_cache_flutter:
     git:
       url: https://github.com/tekaly/playlr.git

@@ -13,8 +13,9 @@ import 'package:playlr_simple_player_app/src/test/audioplayers_test_menu.dart';
 import 'package:playlr_simple_player_app/src/test/just_audio_test_menu.dart';
 // ignore: depend_on_referenced_packages
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 import 'package:tekartik_app_dev_menu/dev_menu.dart';
+import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
+
 import 'src/menu_recorder.dart';
 
 var kvDebugging = 'debugging'.kvFromVar();
@@ -133,6 +134,13 @@ Future<void> mainTestMenu() async {
       });
     });
 
+    item('play asset speed x2', () async {
+      await initCache();
+      var player = await appAudioPlayer.loadSong(assetSongExample1);
+      await player.playFromTo(playbackRate: 2);
+
+      write('done');
+    });
     item('play asset', () async {
       await initCache();
       await appAudioPlayer.stop();
@@ -141,7 +149,7 @@ Future<void> mainTestMenu() async {
         return state.isPausedAndReadyForLoading;
       });
       write('ready');
-      var completer = Completer();
+      var completer = Completer<void>();
       var subscription = appAudioPlayer.stateStream.listen((state) {
         write('#state $state');
         if (state.stateEnum == AppAudioPlayerStateEnum.completed) {
@@ -154,7 +162,7 @@ Future<void> mainTestMenu() async {
         write('waiting for state');
         await completer.future;
       } finally {
-        subscription.cancel();
+        subscription.cancel().unawait();
       }
     });
     item('load, seek then play asset', () async {
@@ -168,7 +176,7 @@ Future<void> mainTestMenu() async {
       write('ready');
       write('seeking');
       await player.seek(const Duration(seconds: 3));
-      player.fadeIn();
+      await player.fadeIn();
 
       /// important to resume after a seek
       await player.resume();
@@ -212,10 +220,10 @@ Future<void> mainTestMenu() async {
     item('play network midi file', () async {
       await appAudioPlayer.playSong(networkExampleMidiGood7);
     });
-    appAudioPlayerMenu(
+    void appAudioPlayerMenu(
       AppAudioPlayer appAudioPlayer, {
       String? name,
-      @Deprecated("dev only") bool? solo,
+      @Deprecated('dev only') bool? solo,
     }) {
       // print('player $appAudioPlayer solo $solo');
       menu(name ?? 'use default ($appAudioPlayer)', () {
@@ -275,7 +283,7 @@ Future<void> mainTestMenu() async {
         });
         item('dumpPosition', () async {
           appAudioPlayer.dumpPositionSync();
-          appAudioPlayer.dumpPosition();
+          await appAudioPlayer.dumpPosition();
           write(await appAudioPlayer.getCurrentPosition());
         });
         item('dumpDuration', () async {

@@ -37,7 +37,7 @@ void menuAudioPlayers() {
       write('source: $source');
       await player.setSource(source);
 
-      await player.seek(Duration(seconds: 4));
+      await player.seek(const Duration(seconds: 4));
       await player.resume();
     });
     item('bytes', () async {
