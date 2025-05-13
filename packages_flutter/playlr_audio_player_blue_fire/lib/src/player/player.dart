@@ -4,6 +4,7 @@ import 'package:playlr_audio_player/player.dart';
 
 import 'blue_fire_audio_player_impl.dart';
 
+/// A [AppAudioPlayer] implementation for BlueFire.
 class AppAudioPlayerBlueFire extends AppAudioPlayer with AppAudioPlayerMixin {
   @override
   SongAudioPlayer newAudioPlayerInstanceFromBytes(Uint8List data) {
@@ -16,4 +17,5 @@ class AppAudioPlayerBlueFire extends AppAudioPlayer with AppAudioPlayerMixin {
   String get name => 'BlueFire';
 }
 
+/// Singleton instance of [AppAudioPlayerBlueFire].
 final AppAudioPlayer appAudioPlayerBlueFire = AppAudioPlayerBlueFire();

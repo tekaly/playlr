@@ -18,60 +18,88 @@ import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 
 import 'src/menu_recorder.dart';
 
+/// Key-value pair for debugging configuration.
 var kvDebugging = 'debugging'.kvFromVar();
+
+/// Indicates whether debugging is enabled.
 bool get debugging {
   return parseBool(kvDebugging.value) ?? false;
 }
 
+/// Key-value pair for player configuration.
 var kvPlayer = 'player'.kvFromVar();
+
+/// Indicates whether the player is using JustAudio.
 bool get isJustAudio {
   return kvPlayer.value == 'just_audio' || kvPlayer.value == null;
 }
 
+/// Example audio player song using an asset.
 var assetSongExample1 = AppAudioPlayerSong(
   globalCacheOrNull!.assetToSource(assetAudioExample1),
 );
+
+/// Example audio player song using a network source.
 var networkExample1 = AppAudioPlayerSong(
   'https://media.howob.com/audio_test/sample-9s-mono.mp3',
-  //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
 );
 
+/// Example audio player song using a good network source.
 var networkExampleGood2 = AppAudioPlayerSong(
   'https://media.howob.com/audio_test/soundhelix_song_1_30s.mp3',
 );
 
+/// Example audio player song using another good network source.
 var networkExampleGood6 = AppAudioPlayerSong(
   'https://media.howob.com/audio_test/free_test_data_15s.mp3.mp3',
 );
+
+/// Example audio player song using a MIDI network source.
 var networkExampleMidiGood7 = AppAudioPlayerSong(
   'https://media.howob.com/audio_test/pop.mid',
 );
+
+/// Example audio player song using a network source with CORS.
 var networkExample3Cors = AppAudioPlayerSong(
   'https://samplelib.com/lib/preview/mp3/sample-12s.mp3',
-  //'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/test%2Fexpected%2Ftest.json?alt=media'
 );
 
+/// Creates an audio player song from a local file path.
 AppAudioPlayerSong localFileSong(String path) =>
     AppAudioPlayerSong(join(kIsWeb ? 'assets/assets' : 'assets', path));
 
+/// Example audio player song using a local file.
 var localGood2 = localFileSong('audio/soundhelix_song_1_30s.mp3');
+
+/// Another example audio player song using a local file.
 var localGood3 = localFileSong('audio/free_test_data_15s.mp3');
+
+/// Example audio player song using a local MIDI file.
 var localMidi = localFileSong('audio/pop.mid');
+
+/// Example audio player song using a local network source.
 var networkExample4Local = AppAudioPlayerSong(
   'assets/assets/audio/example1.mp3',
 );
+
+/// Example audio player song using a local file source.
 var fileExample4Local = AppAudioPlayerSong('assets/audio/example1.mp3');
+
+/// Example audio player song using a missing network source.
 var networkExample2Missing = AppAudioPlayerSong(
   'https://firebasestorage.googleapis.com/v0/b/tekartik-free-dev.appspot.com/o/dummy/test%2Fexpected%2Ftest.json?alt=media',
 );
 
+/// The application audio player instance.
 var appAudioPlayer =
     isJustAudio ? appAudioPlayerJustAudio : appAudioPlayerBlueFire;
 
+/// Main entry point for the test menu.
 Future<void> main() async {
   await mainTestMenu();
 }
 
+/// Initializes and displays the main test menu.
 Future<void> mainTestMenu() async {
   if (!kIsWeb && io.Platform.isWindows) {
     sqfliteFfiInit();

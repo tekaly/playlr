@@ -6,6 +6,7 @@ import 'package:tekartik_app_flutter_common_utils/asset/asset_bundle.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 
+/// Displays a menu for testing audio player functionalities.
 void menuAudioPlayers() {
   menu('audioplayers', () {
     AudioPlayer? audioPlayer;

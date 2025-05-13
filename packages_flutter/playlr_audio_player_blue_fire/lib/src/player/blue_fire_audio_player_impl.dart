@@ -8,22 +8,34 @@ import 'package:playlr_audio_player/src/import.dart';
 // ignore: implementation_imports
 import 'package:playlr_audio_player/src/player/player.dart';
 
+/// Index for temporary files on Linux.
 var linuxIndex = 0;
 
+/// Enables or disables debug output for BlueFire audio player.
 var debugBlueFireAudioPlayer = false; // devWarning(true);
 
+/// Implementation of [SongAudioPlayerImpl] using the BlueFire audioplayers package.
 class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     with SongAudioPlayerMixin {
+  /// The underlying audioplayers [AudioPlayer] instance.
   late final AudioPlayer audioPlayer;
 
+  /// Whether to use IO (Linux) specific implementation.
   bool get useIo => !kIsWeb && io.Platform.isLinux;
-  // io only for now
+
+  /// Future that completes when the IO source is ready.
   late final Future _ioSourceReady;
-  // saved duration.
+
+  /// Saved duration of the audio.
   Duration? _duration;
+
+  /// Whether the initial duration has been read.
   var _initialDurationRead = false;
+
+  /// Whether the player has been stopped.
   var _stopped = false;
-  // Stopped or completed.
+
+  /// Whether the player is active (not stopped or completed).
   bool get _active {
     switch (audioPlayer.state) {
       case PlayerState.playing:
@@ -37,6 +49,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     }
   }
 
+  /// Updates the duration in the player state.
   void _updateDuration() {
     stateSink.add(
       AppAudioPlayerState(
@@ -48,6 +61,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     );
   }
 
+  /// Triggers the duration getter to update the duration.
   void triggerDurationGetter() {
     if (!_initialDurationRead) {
       _initialDurationRead = true;
@@ -71,6 +85,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     }
   }
 
+  /// Creates a [BlueFireAudioPlayerImpl] from a byte buffer.
   BlueFireAudioPlayerImpl.fromBytes(Uint8List bytes) {
     if (debugBlueFireAudioPlayer) {
       // ignore: avoid_print
@@ -162,6 +177,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     }
   }
 
+  /// Resumes playback.
   @override
   Future<void> resume() async {
     _stopped = false;
@@ -171,6 +187,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     await audioPlayer.resume();
   }
 
+  /// Sets the playback rate.
   @override
   Future<void> setPlaybackRate(double rate) async {
     if (debugPlayerDumpWriteLn != null) {
@@ -179,6 +196,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     await audioPlayer.setPlaybackRate(rate);
   }
 
+  /// Starts playback.
   @override
   Future<void> play() async {
     _stopped = false;
@@ -188,6 +206,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     await audioPlayer.resume();
   }
 
+  /// Disposes the player and releases resources.
   @override
   void dispose() {
     super.dispose();
@@ -195,26 +214,32 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     audioPlayer.dispose();
   }
 
+  /// Gets the current playback position.
   @override
   Future<Duration?> getCurrentPosition() {
     return audioPlayer.getCurrentPosition();
   }
 
+  /// Pauses playback.
   @override
   Future<void> pause() => audioPlayer.pause();
 
+  /// Stops playback.
   @override
   Future<void> stop() => audioPlayer.stop();
 
+  /// Seeks to the specified [position].
   @override
   Future<void> seek(Duration position) => audioPlayer.seek(position);
 
+  /// Gets the duration of the audio.
   @override
   Future<Duration?> getDuration() => audioPlayer.getDuration();
 
   @override
   String toString() => 'BlueFire${super.toString()}';
 
+  /// Sets the playback volume.
   @override
   Future<void> setVolume(double volume) async {
     await audioPlayer.setVolume(volume);

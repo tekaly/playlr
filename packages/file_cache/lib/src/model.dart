@@ -2,17 +2,21 @@ import 'package:sembast/timestamp.dart';
 
 import 'import.dart';
 
-/// The source is the key
+/// Database model representing a cached file.
+/// The source is the key.
 class DbFile extends DbStringRecordBase {
-  /// Path is generated on start
+  /// The generated file path on start.
   final path = CvField<String>('path');
 
-  /// True when fetched
+  /// Whether the file has been fetched.
   final fetched = CvField<bool>('fetched');
+
+  /// The timestamp when the file was added or updated.
   final timestamp = CvField<Timestamp>('timestamp');
 
   @override
   List<CvField> get fields => [path, timestamp, fetched];
 }
 
+/// Singleton instance of the [DbFile] model.
 final dbFileModel = DbFile();

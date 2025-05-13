@@ -8,8 +8,10 @@ import 'package:playlr_audio_player/src/import.dart';
 import 'package:playlr_audio_player/src/player/player.dart';
 import 'package:playlr_audio_player_just_audio/src/player/source.dart';
 
+/// Debug flag for JustAudio player.
 var debugJustAudioPlayer = false; // devWarning(true);
 
+/// Convert just audio state to app audio player state enum.
 AppAudioPlayerStateEnum processingStateToStateEnum(
   ProcessingState processingState,
 ) {
@@ -31,12 +33,17 @@ AppAudioPlayerStateEnum processingStateToStateEnum(
   return stateEnum;
 }
 
+/// App audio player implementation using the JustAudio package.
 abstract class SongAudioPlayerJustAudio implements SongAudioPlayer {}
 
+/// Implementation of [SongAudioPlayerImpl] using the JustAudio package.
 class JustAudioPlayerImpl extends SongAudioPlayerImpl
     with SongAudioPlayerMixin
     implements SongAudioPlayerJustAudio {
+  /// Native instance of the JustAudio player.
   late final AudioPlayer jaAudioPlayer;
+
+  /// Creates a new instance of [JustAudioPlayerImpl] from bytes.
   JustAudioPlayerImpl.fromBytes(Uint8List bytes) {
     if (debugPlayerDumpWriteLn != null) {
       debugPlayerDumpWriteLn!('JustAudioPlayerImpl.fromBytes(${bytes.length})');
@@ -136,6 +143,8 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   bool get _active => true;
 
   var _initialDurationRead = false;
+
+  /// Trigger the duration getter to read the initial duration.
   void triggerDurationGetter() {
     if (!_initialDurationRead) {
       _initialDurationRead = true;

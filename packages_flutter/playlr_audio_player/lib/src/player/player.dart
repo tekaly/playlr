@@ -17,53 +17,53 @@ var _positionRefreshDelay = 100;
 /// Debug only
 DumpWriteLnFunction? debugPlayerDumpWriteLn;
 
-/// Audio player song
+/// Represents an audio player song with its source.
 class AppAudioPlayerSong {
-  /// Source of the song
+  /// The source of the song (e.g., file path or URL).
   final String source;
 
-  /// Constructor
+  /// Creates an [AppAudioPlayerSong] with the given [source].
   AppAudioPlayerSong(this.source);
 }
 
-/// Audio player state
+/// Enum representing the state of the audio player.
 enum AppAudioPlayerStateEnum {
-  /// none
+  /// No state.
   none,
 
-  /// preparing
+  /// Preparing the audio player.
   preparing,
 
-  /// ready
+  /// Ready to play.
   ready,
 
-  /// completed
+  /// Playback completed.
   completed, // end of song
 }
 
-/// Audio player state
+/// Represents the state of the audio player.
 class AppAudioPlayerState {
   late final Stopwatch _sw;
 
-  /// state
+  /// The current state of the audio player.
   final AppAudioPlayerStateEnum stateEnum;
 
-  /// playing
+  /// Indicates whether the audio player is playing.
   final bool playing;
 
-  /// Duration
+  /// The duration of the audio being played.
   final Duration? duration;
 
-  /// Is preparing
+  /// Indicates whether the audio player is preparing.
   bool get isPreparing => stateEnum == AppAudioPlayerStateEnum.preparing;
 
-  /// Is ready for resume
+  /// Indicates whether the audio player is ready to resume.
   bool get isReady =>
       (stateEnum == AppAudioPlayerStateEnum.none ||
           stateEnum == AppAudioPlayerStateEnum.ready) &&
       duration != null;
 
-  /// Is paused and ready for loading
+  /// Indicates whether the audio player is paused and ready for loading.
   bool get isPausedAndReadyForLoading => !isPreparing && !playing;
 
   @override
@@ -102,7 +102,7 @@ class AppAudioPlayerState {
     return _position ?? Duration.zero;
   }
 
-  /// Player state
+  /// Creates an [AppAudioPlayerState] with the given parameters.
   AppAudioPlayerState({
     required this.stateEnum,
     required this.playing,
@@ -367,6 +367,7 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
 abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   late final bool _useJaAudioPlayer;
 
+  /// The name of the audio player.
   String get name => useJaAudioPlayer ? 'JustAudio' : 'BlueFire';
 
   /// [useJaAudioPlayer] if null means use default (i.e. default on the web)
@@ -385,6 +386,7 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   );
   final _positionSubject = BehaviorSubject<Duration?>.seeded(null);
 
+  /// Current player
   SongAudioPlayer? get currentPlayer => _currentPlayer;
 
   SongAudioPlayer? get _currentPlayer => listLast(_players);
@@ -400,8 +402,6 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
 
   @override
   Stream<Duration?> get positionStream => _positionSubject.distinct();
-
-  bool get useJaAudioPlayer => _useJaAudioPlayer;
 
   StreamSubscription? _stateSubscription;
   StreamSubscription? _positionSubscription;
@@ -488,6 +488,7 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
     return player;
   }
 
+  /// Load a song from the given [song] source.
   Future<SongAudioPlayer> loadSong(AppAudioPlayerSong song) async {
     var bytes = await globalCacheOrNull!.getContent(song.source);
     return _newAudioPlayer(bytes);
@@ -597,3 +598,9 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
 }
 
 // final appAudioPlayer = AppAudioPlayer();
+
+/// Private extension
+extension AppAudioPlayerPrvExtension on AppAudioPlayer {
+  /// Using just audio player
+  bool get useJaAudioPlayer => _useJaAudioPlayer;
+}

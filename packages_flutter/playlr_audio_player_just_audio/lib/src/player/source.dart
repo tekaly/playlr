@@ -2,9 +2,12 @@ import 'dart:typed_data';
 
 import 'package:just_audio/just_audio.dart' as ja;
 
+/// A [ja.StreamAudioSource] implementation for playing audio from a [Uint8List] buffer.
 class JustAudioBytesSource extends ja.StreamAudioSource {
+  /// The audio buffer to play.
   final Uint8List _buffer;
 
+  /// Creates a [JustAudioBytesSource] with the given buffer.
   JustAudioBytesSource(this._buffer) : super(tag: 'JustAudioBytesSource');
 
   @override

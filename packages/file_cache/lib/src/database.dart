@@ -9,30 +9,46 @@ import 'package:tekartik_file_cache/src/model.dart';
 
 import 'import.dart';
 
+/// File store
 var cvFileStore = CvStoreRef<String, DbFile>('file');
 
+/// A function type for writing debug messages.
 typedef DumpWriteLnFunction = void Function(String msg);
+
+/// options function for writing debug messages.
 DumpWriteLnFunction? debugCacheWriteLn;
 
+/// Options for configuring the file cache database.
 class FileCacheDatabaseOptions {
+  /// The maximum number of files allowed in the cache.
   final int fileCountMax;
 
+  /// Creates a [FileCacheDatabaseOptions] instance with the given [fileCountMax].
   FileCacheDatabaseOptions({required this.fileCountMax});
 }
 
+/// Represents a file cache database for managing cached files.
 class FileCacheDatabase {
+  /// The file system used for storing cached files.
   final FileSystem fs;
+
+  /// The database factory used for creating the database.
   final DatabaseFactory databaseFactory;
+
+  /// The HTTP client factory used for fetching files.
   late final HttpClientFactory httpClientFactory;
+
+  /// The options for configuring the file cache database.
   final FileCacheDatabaseOptions options;
 
-  // Root path
+  /// The root path for the cache database.
   final String? path;
 
   // Key is the generated path
   final _fetchLockMap = <String, Lock>{};
   Future<Database>? _database;
 
+  /// Creates a [FileCacheDatabase] instance with the given parameters.
   FileCacheDatabase({
     required this.fs,
     required this.databaseFactory,
@@ -44,6 +60,7 @@ class FileCacheDatabase {
     cvAddConstructor(DbFile.new);
   }
 
+  /// Deletes the directory at the given [path].
   Future<void> deleteDirectory(String path) async {
     try {
       dumpLine('deleting $path');
@@ -59,6 +76,7 @@ class FileCacheDatabase {
     }
   }
 
+  /// Clears the cache by deleting all files and resetting the database.
   Future<void> clearCache() async {
     await (await getDatabase()).close();
     _database = null;
@@ -71,10 +89,12 @@ class FileCacheDatabase {
     await deleteDirectory(dataPath);
   }
 
+  /// Logs a message to the debug output or console.
   void dumpLine(String line) {
     (debugCacheWriteLn ?? print)(line);
   }
 
+  /// Dumps the contents of the directory at the given [path].
   Future<void> dumpDirectory(String path) async {
     dumpLine('listing $path');
     var list = await fs.directory(path).list(recursive: true).toList();
@@ -83,14 +103,17 @@ class FileCacheDatabase {
     }
   }
 
+  /// Dumps the contents of the cache.
   Future<void> dumpCache() async {
     await dumpDirectory(path ?? '.');
   }
 
+  /// The path to the database.
   late final databasePath = () {
     return join(dataPath, 'file_cache.db');
   }();
 
+  /// Retrieves the database instance, creating it if necessary.
   Future<Database> getDatabase() async {
     if (_database != null) {
       return _database!;
@@ -106,6 +129,7 @@ class FileCacheDatabase {
     );
   }
 
+  /// Retrieves the database file associated with the given [source].
   Future<DbFile> getDbFile(String source) async {
     var db = await getDatabase();
     var record = cvFileStore.record(source);
@@ -123,6 +147,7 @@ class FileCacheDatabase {
     });
   }
 
+  /// Wraps an action with optional debugging information.
   Future<T> wrap<T>(
     Future<T> Function() action, {
     String? prefix,
@@ -141,6 +166,7 @@ class FileCacheDatabase {
     }
   }
 
+  /// Fetches the content of a file from the given [source].
   Future<Uint8List> fetch(String source) async {
     return await wrap(
       () => httpClientFactory.newClient().readBytes(Uri.parse(source)),
@@ -149,6 +175,7 @@ class FileCacheDatabase {
     );
   }
 
+  /// Data path
   late final dataPath = () {
     var dataPart = 'data';
     if (path != null) {
@@ -157,6 +184,7 @@ class FileCacheDatabase {
     return dataPart;
   }();
 
+  /// Files path
   late final filesPath = () {
     var filesPart = 'file';
     if (path != null) {
@@ -165,10 +193,12 @@ class FileCacheDatabase {
     return filesPart;
   }();
 
+  /// Creates a file instance from the given [path].
   File fileFromPath(String path) {
     return fs.file(join(filesPath, path));
   }
 
+  /// Cleans up the cache by removing excess files.
   Future<void> cleanUp() async {
     var db = await getDatabase();
     if (await cvFileStore.rawRef.count(db) > options.fileCountMax) {
@@ -193,10 +223,12 @@ class FileCacheDatabase {
     }
   }
 
+  /// Parses the source URI and returns it, or null if invalid.
   Uri? _sourceUri(String source) {
     return Uri.tryParse(source);
   }
 
+  /// Retrieves the content of a file from the cache or fetches it if not cached.
   Future<Uint8List> getContent(String source) async {
     return wrap(
       () async {

@@ -7,6 +7,7 @@ import 'package:record/record.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_test_menu_flutter/test_menu_flutter.dart';
 
+/// Displays the menu for audio recording and streaming features.
 void menuRecorder() {
   item('audio streamer', () async {
     final record = AudioStreamer();
@@ -56,7 +57,9 @@ void menuRecorder() {
   });
 }
 
+/// A screen widget that displays a waveform visualization.
 class WaveformScreen extends StatefulWidget {
+  /// Creates a [WaveformScreen] widget.
   const WaveformScreen({super.key});
 
   @override
