@@ -148,6 +148,9 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
       if (debugPlayerDumpWriteLn != null) {
         debugPlayerDumpWriteLn!('$this onPositionChanged $e');
       }
+      if (disposed) {
+        return;
+      }
       positionSink.add(e);
     });
     if (useIo) {
@@ -209,9 +212,9 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   /// Disposes the player and releases resources.
   @override
   void dispose() {
-    super.dispose();
     _stopped = true;
     audioPlayer.dispose();
+    super.dispose();
   }
 
   /// Gets the current playback position.
