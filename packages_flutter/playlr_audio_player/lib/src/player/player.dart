@@ -365,15 +365,11 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
 
 /// App audio player
 abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
-  late final bool _useJaAudioPlayer;
-
   /// The name of the audio player.
-  String get name => useJaAudioPlayer ? 'JustAudio' : 'BlueFire';
+  String get name; //  => useJaAudioPlayer ? 'JustAudio' : 'BlueFire';
 
   /// [useJaAudioPlayer] if null means use default (i.e. default on the web)
-  AppAudioPlayer({bool? useJaAudioPlayer}) {
-    _useJaAudioPlayer = useJaAudioPlayer ?? kIsWeb;
-  }
+  AppAudioPlayer({@Deprecated('Do no use') bool? useJaAudioPlayer});
 
   final _poolLength = 2;
   final _players = <SongAudioPlayerImpl>[];
@@ -600,7 +596,4 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
 // final appAudioPlayer = AppAudioPlayer();
 
 /// Private extension
-extension AppAudioPlayerPrvExtension on AppAudioPlayer {
-  /// Using just audio player
-  bool get useJaAudioPlayer => _useJaAudioPlayer;
-}
+extension AppAudioPlayerPrvExtension on AppAudioPlayer {}

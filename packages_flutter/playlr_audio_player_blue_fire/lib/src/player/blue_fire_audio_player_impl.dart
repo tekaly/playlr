@@ -209,11 +209,23 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
     await audioPlayer.resume();
   }
 
+  final _disposeLock = Lock();
+
   /// Disposes the player and releases resources.
   @override
   void dispose() {
     _stopped = true;
-    audioPlayer.dispose();
+    _disposeLock.synchronized(() async {
+      if (audioPlayer.state != PlayerState.disposed) {
+        try {
+          await audioPlayer.dispose();
+        } catch (e) {
+          if (debugPlayerDumpWriteLn != null) {
+            debugPlayerDumpWriteLn!('$this dispose $e');
+          }
+        }
+      }
+    });
     super.dispose();
   }
 

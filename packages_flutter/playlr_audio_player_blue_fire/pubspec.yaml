@@ -1,6 +1,6 @@
 name: playlr_audio_player_blue_fire
 description: Audio player blue_fire.
-version: 0.3.0
+version: 0.3.1
 homepage:
 publish_to: none
 
@@ -17,7 +17,7 @@ dependencies:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player
       ref: dart3a
-    version: '>=0.3.0'
+    version: '>=0.3.1'
   audioplayers: '>=6.0.0'
   synchronized:
 
