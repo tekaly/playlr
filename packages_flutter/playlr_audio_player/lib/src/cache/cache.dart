@@ -13,6 +13,7 @@ final _lock = Lock();
 
 /// Initializes the cache database (if not already initialized).
 Future<FileCacheDatabase> initCacheDatabase({
+  String? rootPath,
   required String packageName,
 }) async {
   if (globalCacheOrNull != null) {
@@ -23,14 +24,16 @@ Future<FileCacheDatabase> initCacheDatabase({
       return globalCacheOrNull!;
     }
     var databaseFactory = getDatabaseFactory();
-    String? path;
+    var path = rootPath;
     app.FileSystem? fs;
-    if (!kIsWeb) {
-      fs = app.fs;
-      path =
-          (await fs.getApplicationDocumentsDirectory(
-            packageName: packageName,
-          )).path;
+    if (path == null) {
+      if (!kIsWeb) {
+        fs = app.fs;
+        path =
+            (await fs.getApplicationDocumentsDirectory(
+              packageName: packageName,
+            )).path;
+      }
     }
     var db = FileCacheDatabaseFlutter(
       databaseFactory: databaseFactory,
