@@ -24,6 +24,12 @@ class AppAudioPlayerSong {
 
   /// Creates an [AppAudioPlayerSong] with the given [source].
   AppAudioPlayerSong(this.source);
+
+  /// Asset source constructor.
+  AppAudioPlayerSong.asset(String source) : source = 'asset:$source';
+
+  /// Asset source constructor.
+  AppAudioPlayerSong.file(String source) : source = Uri.file(source).toString();
 }
 
 /// Enum representing the state of the audio player.

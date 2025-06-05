@@ -5,7 +5,6 @@ import 'package:path/path.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:tekartik_app_http/app_http.dart' as http;
 import 'package:tekartik_file_cache/file_cache.dart';
-import 'package:tekartik_file_cache/src/model.dart';
 
 import 'import.dart';
 
@@ -240,6 +239,13 @@ class FileCacheDatabase {
             return await fs.file(uri!.toFilePath()).readAsBytes();
           }
         }
+
+        /// Don't cache asset files
+        var assetUri = parseAssetOrNull(source);
+        if (assetUri != null) {
+          var content = await fetch(source);
+          return content;
+        }
         var dbFile = await getDbFile(source);
         var path = dbFile.path.v!;
         Future<Uint8List> doRead() async {
@@ -282,5 +288,23 @@ class FileCacheDatabase {
       prefix: 'get',
       details: source,
     );
+  }
+}
+
+const _assetPrefix = 'asset:';
+
+/// Extension methods for [FileCacheDatabase] to handle asset sources (flutter only)
+extension FileCacheDatabaseAssetExt on FileCacheDatabase {
+  /// Parses the asset key from the [source] if it is an asset source.
+  String? parseAssetOrNull(String source) {
+    if (source.startsWith(_assetPrefix)) {
+      return source.substring(_assetPrefix.length);
+    }
+    return null;
+  }
+
+  /// Converts an asset path to a source string.
+  String assetToSource(String asset) {
+    return '$_assetPrefix$asset';
   }
 }

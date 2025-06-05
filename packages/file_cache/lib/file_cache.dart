@@ -3,5 +3,12 @@
 /// More dartdocs go here.
 library;
 
-export 'src/database.dart';
-export 'src/model.dart';
+export 'src/database.dart'
+    show
+        FileCacheDatabase,
+        FileCacheDatabaseAssetExt,
+        FileCacheDatabaseOptions,
+        debugCacheWriteLn,
+        cvFileStore,
+        DumpWriteLnFunction;
+export 'src/model.dart' show DbFile, dbFileModel;

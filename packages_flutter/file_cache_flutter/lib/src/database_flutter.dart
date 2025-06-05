@@ -36,21 +36,3 @@ class FileCacheDatabaseFlutter extends FileCacheDatabase {
     return super.fetch(source);
   }
 }
-
-const _assetPrefix = 'asset:';
-
-/// Extension methods for [FileCacheDatabase] to handle asset sources.
-extension FileCacheDatabaseFlutterExt on FileCacheDatabase {
-  /// Parses the asset key from the [source] if it is an asset source.
-  String? parseAssetOrNull(String source) {
-    if (source.startsWith(_assetPrefix)) {
-      return source.substring(_assetPrefix.length);
-    }
-    return null;
-  }
-
-  /// Converts an asset path to a source string.
-  String assetToSource(String asset) {
-    return '$_assetPrefix$asset';
-  }
-}
