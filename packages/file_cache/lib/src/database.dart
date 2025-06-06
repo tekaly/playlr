@@ -235,8 +235,8 @@ class FileCacheDatabase {
           // Handle io file if scheme is empty
           var uri = _sourceUri(source);
           // debugCacheWriteLn!('wrap $source ${uri?.scheme}');
-          if (uri?.scheme.isEmpty ?? false) {
-            return await fs.file(uri!.toFilePath()).readAsBytes();
+          if (uri != null && (uri.scheme.isEmpty || (uri.scheme == 'file'))) {
+            return await fs.file(uri.toFilePath()).readAsBytes();
           }
         }
 
