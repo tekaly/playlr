@@ -135,11 +135,10 @@ class FileCacheDatabase {
     return await db.transaction((txn) async {
       var dbFile = await record.get(txn);
       if (dbFile == null) {
-        dbFile =
-            cvFileStore.record(source).cv()
-              ..timestamp.v = Timestamp.now()
-              ..fetched.v = false
-              ..path.v = await cvFileStore.rawRef.generateKey(txn);
+        dbFile = cvFileStore.record(source).cv()
+          ..timestamp.v = Timestamp.now()
+          ..fetched.v = false
+          ..path.v = await cvFileStore.rawRef.generateKey(txn);
         await dbFile.put(txn);
       }
       return dbFile;

@@ -91,8 +91,9 @@ var networkExample2Missing = AppAudioPlayerSong(
 );
 
 /// The application audio player instance.
-var appAudioPlayer =
-    isJustAudio ? appAudioPlayerJustAudio : appAudioPlayerBlueFire;
+var appAudioPlayer = isJustAudio
+    ? appAudioPlayerJustAudio
+    : appAudioPlayerBlueFire;
 
 /// Main entry point for the test menu.
 Future<void> main() async {

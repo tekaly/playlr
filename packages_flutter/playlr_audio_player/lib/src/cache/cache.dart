@@ -29,10 +29,9 @@ Future<FileCacheDatabase> initCacheDatabase({
     if (path == null) {
       if (!kIsWeb) {
         fs = app.fs;
-        path =
-            (await fs.getApplicationDocumentsDirectory(
-              packageName: packageName,
-            )).path;
+        path = (await fs.getApplicationDocumentsDirectory(
+          packageName: packageName,
+        )).path;
       }
     }
     var db = FileCacheDatabaseFlutter(

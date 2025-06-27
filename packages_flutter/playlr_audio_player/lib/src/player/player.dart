@@ -252,10 +252,10 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
       var elapsed = sw.elapsed;
       if (stateValue.playing) {
         startPlayingDuration ??= elapsed;
-        var position = ((elapsed.inMilliseconds -
-                    startPlayingDuration.inMilliseconds) /
-                duration.inMilliseconds)
-            .bounded(0, 1);
+        var position =
+            ((elapsed.inMilliseconds - startPlayingDuration.inMilliseconds) /
+                    duration.inMilliseconds)
+                .bounded(0, 1);
         setVolume(position).unawait();
       }
       await sleep(10);
