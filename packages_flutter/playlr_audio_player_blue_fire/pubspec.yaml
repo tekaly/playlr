@@ -16,7 +16,6 @@ dependencies:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player
-      ref: dart3a
     version: '>=0.3.1'
   audioplayers: '>=6.0.0'
   synchronized:

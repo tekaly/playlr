@@ -9,6 +9,5 @@ Multi platform audio player on top of audioplayers
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player_blue_fire
-      ref: dart3a
     version: '>=0.0.1'
 ```

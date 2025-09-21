@@ -7,5 +7,4 @@ Based on record package.
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_recorder
-      ref: dart3a
 ```

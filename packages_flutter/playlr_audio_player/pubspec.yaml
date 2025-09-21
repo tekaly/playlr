@@ -16,19 +16,16 @@ dependencies:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_player_interface
-      ref: dart3a
     version: '>=0.0.1'
 
   tekartik_file_cache_flutter:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/file_cache_flutter
-      ref: dart3a
     version: '>=0.0.1'
   tekartik_app_flutter_sembast:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_sembast
     version: '>=0.1.0'
   synchronized:

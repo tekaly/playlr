@@ -9,5 +9,4 @@ File cache on flutter
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/file_cache_flutter
-      ref: dart3a
 ```

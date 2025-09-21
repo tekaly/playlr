@@ -5,5 +5,4 @@
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_assets
-      ref: dart3a
 ```

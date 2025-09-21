@@ -34,29 +34,24 @@ dependencies:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player
-      ref: dart3a
     version: '>=0.2.0'
   playlr_audio_recorder:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_recorder
-      ref: dart3a
   playlr_audio_player_just_audio:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player_just_audio
-      ref: dart3a
     version: '>=0.2.0'
   playlr_audio_player_blue_fire:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player_blue_fire
-      ref: dart3a
     version: '>=0.2.0'
   tekartik_test_menu_flutter:
     git:
       url: https://github.com/tekartik/test_menu_flutter
-      ref: dart3a
       path: test_menu_flutter
     version: '>=0.2.3'
   audioplayers: '>=6.0.0'
@@ -72,7 +67,6 @@ dependencies:
   tekartik_app_navigator_flutter:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_navigator
     version: '>=0.2.4+1'
 
@@ -82,23 +76,19 @@ dependencies:
   tekartik_app_flutter_fs:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_fs
     version: '>=0.1.0'
   tekaly_playlr_audio_assets:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_assets
-      ref: dart3a
   tekartik_app_dev_menu:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_dev_menu
   tekartik_app_flutter_common_utils:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_common
 dev_dependencies:
   flutter_test:

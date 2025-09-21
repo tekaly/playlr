@@ -13,13 +13,11 @@ dependencies:
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_http
     version: '>=0.1.0'
   tekartik_app_cv_sembast:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_cv_sembast
     version: '>=0.5.0'
 dev_dependencies:
