@@ -338,7 +338,7 @@ Future<void> mainTestMenu() async {
           }
         });
         // ignore: deprecated_member_use
-      }, solo: solo);
+      });
     }
 
     appAudioPlayerMenu(
