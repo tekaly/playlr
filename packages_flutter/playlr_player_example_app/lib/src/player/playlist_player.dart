@@ -23,6 +23,9 @@ class PlaylistPlayerState {
   /// True when repeat all is on.
   final bool repeatAll;
 
+  /// Set when the current song could not be loaded or played.
+  final String? error;
+
   /// Playlist state.
   const PlaylistPlayerState({
     this.asset,
@@ -30,25 +33,29 @@ class PlaylistPlayerState {
     this.playing = false,
     this.shuffle = false,
     this.repeatAll = true,
+    this.error,
   });
 
-  /// Copy with.
+  /// Copy with, [error] is cleared unless specified.
   PlaylistPlayerState copyWith({
     AudioAssetExample? asset,
     bool? loading,
     bool? playing,
     bool? shuffle,
     bool? repeatAll,
+    String? error,
   }) => PlaylistPlayerState(
     asset: asset ?? this.asset,
     loading: loading ?? this.loading,
     playing: playing ?? this.playing,
     shuffle: shuffle ?? this.shuffle,
     repeatAll: repeatAll ?? this.repeatAll,
+    error: error,
   );
 
   @override
-  String toString() => '$asset loading $loading playing $playing';
+  String toString() =>
+      '$asset loading $loading playing $playing${error == null ? '' : ' error $error'}';
 }
 
 /// Plays a list of assets one after the other, with previous/next, shuffle
@@ -79,7 +86,10 @@ class PlaylistPlayerController {
       if (playerState.stateEnum == AppAudioPlayerStateEnum.completed) {
         unawaited(next());
       } else {
-        state.value = state.value.copyWith(playing: playerState.playing);
+        state.value = state.value.copyWith(
+          playing: playerState.playing,
+          error: state.value.error,
+        );
       }
     });
   }
@@ -111,15 +121,28 @@ class PlaylistPlayerController {
         // A newer request superseded this one.
         return;
       }
+      if (!songPlayer.stateValue.isReady) {
+        // Never got ready (this happens with just_audio on linux), don't
+        // pretend we are playing.
+        state.value = state.value.copyWith(
+          loading: false,
+          playing: false,
+          error: 'Could not load ${asset.name}',
+        );
+        return;
+      }
       // Not awaited: on some implementations (just_audio) the resume future
       // only completes at the end of the song.
       unawaited(songPlayer.resume());
       state.value = state.value.copyWith(loading: false, playing: true);
     } catch (e) {
       if (requestId == _playRequestId) {
-        state.value = state.value.copyWith(loading: false, playing: false);
+        state.value = state.value.copyWith(
+          loading: false,
+          playing: false,
+          error: '$e',
+        );
       }
-      rethrow;
     }
   }
 

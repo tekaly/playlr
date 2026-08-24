@@ -89,6 +89,15 @@ class _PlaylistPlayerControls extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
+          if (state.error != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                state.error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                textAlign: TextAlign.center,
+              ),
+            ),
           if (state.loading)
             const LinearProgressIndicator()
           else
