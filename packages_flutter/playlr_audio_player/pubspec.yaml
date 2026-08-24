@@ -5,11 +5,11 @@ homepage:
 publish_to: none
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.11.0
   flutter: ">=1.17.0"
 
 dependencies:
-  path: ">=1.9.0"
+  path: ">=1.9.1"
   flutter:
     sdk: flutter
   playlr_audio_player_interface:
@@ -28,12 +28,12 @@ dependencies:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_sembast
     version: '>=0.1.0'
-  synchronized:
+  synchronized: ">=3.4.1"
   rxdart: '>=0.27.7'
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ">=5.0.0"
+  flutter_lints: ">=6.0.0"
 
 
 # For information on the generic Dart part of this file, see the
