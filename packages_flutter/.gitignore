@@ -1,2 +1,8 @@
 /.flutter-plugins
 /.flutter-plugins-dependencies
+/playlr_player_example_app/.metadata
+/playlr_player_example_app/android/
+/playlr_player_example_app/macos/
+/playlr_player_example_app/linux/
+/playlr_player_example_app/web/
+/playlr_player_example_app/windows/

@@ -1,0 +1,12 @@
+name: playlr_asset_example
+description: Example (audio) assets shared by the playlr example apps.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+dev_dependencies:
+  lints: ">=6.1.0"
+  test: ">=1.31.0"
+resolution: workspace

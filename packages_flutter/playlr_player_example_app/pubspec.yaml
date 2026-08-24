@@ -1,0 +1,61 @@
+name: playlr_player_example_app
+description: Simple multi-platform player example app (web/desktop/mobile).
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ">=1.0.9"
+
+  playlr_asset_example_flutter:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_asset_example_flutter
+    version: '>=0.1.0'
+  playlr_audio_player:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_audio_player
+    version: '>=0.3.1'
+  playlr_audio_player_just_audio:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_audio_player_just_audio
+    version: '>=0.2.0'
+  playlr_audio_player_blue_fire:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_audio_player_blue_fire
+    version: '>=0.2.0'
+
+  # just_audio is used on every platform, the extra packages below add the
+  # missing linux/windows implementations (they must be added by the app).
+  just_audio: '>=0.9.0'
+  just_audio_mpv:
+  just_audio_windows:
+
+  # audioplayers (blue fire) is the alternative implementation.
+  audioplayers: '>=6.0.0'
+  audioplayers_linux:
+
+  # Needed for the file cache database on windows.
+  sqflite_common_ffi: '>=2.3.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ">=6.0.0"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - packages/playlr_asset_example/audio/short_song_5s.mp3
+    - packages/playlr_asset_example/audio/example1_8s.mp3
+    - packages/playlr_asset_example/audio/free_test_data_15s.mp3
+    - packages/playlr_asset_example/audio/soundhelix_song_30s.mp3
+    - packages/playlr_asset_example/audio/pop.mid
+resolution: workspace

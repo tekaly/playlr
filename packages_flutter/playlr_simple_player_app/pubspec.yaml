@@ -82,6 +82,11 @@ dependencies:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages/playlr_audio_assets
+  playlr_asset_example:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages/playlr_asset_example
+    version: '>=0.1.0'
   tekartik_app_dev_menu:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
@@ -115,7 +120,11 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/audio/
+    - packages/playlr_asset_example/audio/short_song_5s.mp3
+    - packages/playlr_asset_example/audio/example1_8s.mp3
+    - packages/playlr_asset_example/audio/free_test_data_15s.mp3
+    - packages/playlr_asset_example/audio/soundhelix_song_30s.mp3
+    - packages/playlr_asset_example/audio/pop.mid
 resolution: workspace
 
   #   - images/a_dot_ham.jpeg

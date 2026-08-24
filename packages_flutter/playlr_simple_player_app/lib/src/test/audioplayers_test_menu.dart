@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:playlr_simple_player_app/main_test_menu.dart';
+import 'package:playlr_simple_player_app/src/asset/assets.dart';
 import 'package:tekartik_app_flutter_common_utils/asset/asset_bundle.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_common_utils/common_utils_import.dart';
@@ -45,7 +46,7 @@ void menuAudioPlayers() {
       await audioPlayer?.dispose();
       audioPlayer = AudioPlayer();
       var source = BytesSource(
-        (await tkRootBundle.loadBytes('assets/audio/example1.mp3')),
+        (await tkRootBundle.loadBytes(assetAudioExample1)),
       );
       write('source: $source');
       await audioPlayer!.setSource(source);

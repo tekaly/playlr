@@ -64,26 +64,29 @@ var networkExample3Cors = AppAudioPlayerSong(
   'https://samplelib.com/lib/preview/mp3/sample-12s.mp3',
 );
 
-/// Creates an audio player song from a local file path.
-AppAudioPlayerSong localFileSong(String path) =>
-    AppAudioPlayerSong(join(kIsWeb ? 'assets/assets' : 'assets', path));
+/// Creates an audio player song from a local (bundled) file path, i.e. not
+/// loaded through the asset bundle but from the file system (or http on the
+/// web) using the asset key location.
+AppAudioPlayerSong localFileSong(AudioAssetExample asset) => AppAudioPlayerSong(
+  kIsWeb ? join('assets', asset.assetKey) : asset.assetKey,
+);
 
 /// Example audio player song using a local file.
-var localGood2 = localFileSong('audio/soundhelix_song_1_30s.mp3');
+var localGood2 = localFileSong(audioAssetExampleSoundHelixSong30s);
 
 /// Another example audio player song using a local file.
-var localGood3 = localFileSong('audio/free_test_data_15s.mp3');
+var localGood3 = localFileSong(audioAssetExampleFreeTestData15s);
 
 /// Example audio player song using a local MIDI file.
-var localMidi = localFileSong('audio/pop.mid');
+var localMidi = localFileSong(audioAssetExamplePopMidi);
 
 /// Example audio player song using a local network source.
 var networkExample4Local = AppAudioPlayerSong(
-  'assets/assets/audio/example1.mp3',
+  join('assets', audioAssetExample1.assetKey),
 );
 
 /// Example audio player song using a local file source.
-var fileExample4Local = AppAudioPlayerSong('assets/audio/example1.mp3');
+var fileExample4Local = AppAudioPlayerSong(audioAssetExample1.assetKey);
 
 /// Example audio player song using a missing network source.
 var networkExample2Missing = AppAudioPlayerSong(

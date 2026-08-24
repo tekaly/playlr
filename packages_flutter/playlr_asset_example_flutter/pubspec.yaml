@@ -1,0 +1,30 @@
+name: playlr_asset_example_flutter
+description: Flutter helpers for the playlr example (audio) assets.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  playlr_asset_example:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages/playlr_asset_example
+    version: '>=0.1.0'
+  playlr_audio_player:
+    git:
+      url: https://github.com/tekaly/playlr.git
+      path: packages_flutter/playlr_audio_player
+    version: '>=0.3.1'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ">=6.0.0"
+
+flutter:
+resolution: workspace

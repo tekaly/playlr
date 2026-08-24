@@ -4,12 +4,15 @@ environment:
   sdk: ^3.11.0
 workspace:
   - packages_flutter/file_cache_flutter
+  - packages_flutter/playlr_asset_example_flutter
   - packages_flutter/playlr_audio_player
   - packages_flutter/playlr_audio_player_blue_fire
   - packages_flutter/playlr_audio_player_just_audio
   - packages_flutter/playlr_audio_recorder
+  - packages_flutter/playlr_player_example_app
   - packages_flutter/playlr_simple_player_app
   - packages/file_cache
+  - packages/playlr_asset_example
   - packages/playlr_assets
   - packages/playlr_audio_assets
   - packages/playlr_audio_player_interface
