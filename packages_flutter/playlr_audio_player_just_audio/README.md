@@ -19,3 +19,13 @@ sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
 sudo apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 sudo apt-get install gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
 ```
+
+## Agent skills
+
+The package ships [package skills](https://dart.dev/ai/package-skills) for
+AI coding agents (`skills/`): `playlr-audio-player-just-audio-setup`.
+Install them in an app depending on it with:
+
+```bash
+dart run skills@ get -p playlr_audio_player_just_audio
+```

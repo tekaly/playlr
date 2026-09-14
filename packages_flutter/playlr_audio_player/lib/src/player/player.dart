@@ -482,6 +482,9 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   SongAudioPlayer newAudioPlayerInstanceFromBytes(Uint8List data);
 
   /// Start play but returns before play terminates
+  ///
+  /// The song content is fetched through the global cache, see [loadSong];
+  /// use [playBytes] when the content is already at hand.
   Future<SongAudioPlayer> playSong(AppAudioPlayerSong song) async {
     // Stop current
     stop().unawait();
@@ -490,11 +493,35 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
     return player;
   }
 
-  /// Load a song from the given [song] source.
+  /// Start playing [bytes] (the audio file content), returns before play
+  /// terminates.
+  ///
+  /// For an app that fetches and caches the audio itself: no global cache is
+  /// involved.
+  Future<SongAudioPlayer> playBytes(Uint8List bytes) async {
+    // Stop current
+    stop().unawait();
+    var player = loadBytes(bytes);
+    player.play().unawait();
+    return player;
+  }
+
+  /// Load a song from the given [song] source, through the global cache
+  /// (`initCacheDatabase` must have been called).
   Future<SongAudioPlayer> loadSong(AppAudioPlayerSong song) async {
-    var bytes = await globalCacheOrNull!.getContent(song.source);
+    var cache = globalCacheOrNull;
+    if (cache == null) {
+      throw StateError(
+        'No global cache: call initCacheDatabase() first, or play the audio '
+        'content with playBytes()/loadBytes()',
+      );
+    }
+    var bytes = await cache.getContent(song.source);
     return _newAudioPlayer(bytes);
   }
+
+  /// Load a song from its content [bytes], becoming the current player.
+  SongAudioPlayer loadBytes(Uint8List bytes) => _newAudioPlayer(bytes);
 
   @override
   Future<void> resume() async {

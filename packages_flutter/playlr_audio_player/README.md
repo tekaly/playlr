@@ -11,3 +11,13 @@ Multi platform audio player
       path: packages_flutter/playlr_audio_player
     version: '>=0.0.1'
 ```
+
+## Agent skills
+
+The package ships [package skills](https://dart.dev/ai/package-skills) for
+AI coding agents (`skills/`): `playlr-audio-player-playback`, `playlr-audio-player-cache`.
+Install them in an app depending on it with:
+
+```bash
+dart run skills@ get -p playlr_audio_player
+```
