@@ -19,7 +19,9 @@ class JustAudioBytesSource extends ja.StreamAudioSource {
     // ignore: experimental_member_use
     return ja.StreamAudioResponse(
       sourceLength: _buffer.length,
-      contentLength: (start ?? 0) - (end ?? _buffer.length),
+      // The length of what is sent, never negative: a bogus content length
+      // (or content range) is refused by some clients — mpv on linux.
+      contentLength: (end ?? _buffer.length) - (start ?? 0),
       offset: start ?? 0,
       stream: Stream.fromIterable([_buffer.sublist(start ?? 0, end)]),
       contentType: 'audio/mp3',
