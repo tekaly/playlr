@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:playlr_player_example_app/src/screen/main_menu_screen.dart';
 
 /// Simple player example app.

@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.13.0
 
 dependencies:
   flutter:
@@ -43,7 +43,10 @@ dependencies:
   audioplayers_linux:
 
   # Needed for the file cache database on windows.
-  sqflite_common_ffi: '>=2.3.0'
+  sqflite_common_ffi: ">=2.4.1"
+
+  # The design widgets, as the tekartik flutter packages use them.
+  material_ui: ">=1.5.0"
 
 dev_dependencies:
   flutter_test:

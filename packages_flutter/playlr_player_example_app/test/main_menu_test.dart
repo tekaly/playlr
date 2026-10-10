@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:playlr_player_example_app/src/player/app_audio_player.dart';
 import 'package:playlr_player_example_app/src/screen/main_menu_screen.dart';
 

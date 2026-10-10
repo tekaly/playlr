@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:playlr_audio_recorder/streamer.dart';
 import 'package:playlr_audio_recorder/volume_widget.dart';
 import 'package:playlr_simple_player_app/src/import.dart';

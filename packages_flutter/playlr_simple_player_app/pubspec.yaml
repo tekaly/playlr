@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.13.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -95,6 +95,14 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_common
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+  # The design widgets, as the tekartik flutter packages use them.
+  material_ui: ">=1.5.0"
+  record: ">=7.1.2"
+  sqflite_common_ffi: ">=2.4.1"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

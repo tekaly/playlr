@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:playlr_asset_example_flutter/playlr_asset_example_flutter.dart';
 import 'package:playlr_player_example_app/src/player/app_audio_player.dart';
 import 'package:playlr_player_example_app/src/player/playlist_player.dart';
