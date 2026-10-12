@@ -43,10 +43,23 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   /// Native instance of the JustAudio player.
   late final AudioPlayer jaAudioPlayer;
 
+  late final Future<void> _loaded;
+
+  @override
+  Future<void> get loaded => _loaded;
+
   /// Creates a new instance of [JustAudioPlayerImpl] from bytes.
-  JustAudioPlayerImpl.fromBytes(Uint8List bytes) {
+  JustAudioPlayerImpl.fromBytes(Uint8List bytes)
+    : this._(JustAudioBytesSource(bytes), 'fromBytes(${bytes.length})');
+
+  /// Creates a new instance of [JustAudioPlayerImpl] streaming [uri] (http
+  /// `Range` requests when the server supports them).
+  JustAudioPlayerImpl.fromUri(Uri uri)
+    : this._(AudioSource.uri(uri), 'fromUri($uri)');
+
+  JustAudioPlayerImpl._(AudioSource source, String debugLabel) {
     if (debugPlayerDumpWriteLn != null) {
-      debugPlayerDumpWriteLn!('JustAudioPlayerImpl.fromBytes(${bytes.length})');
+      debugPlayerDumpWriteLn!('JustAudioPlayerImpl.$debugLabel');
     }
 
     jaAudioPlayer = AudioPlayer();
@@ -113,7 +126,10 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
         }
       });
     }
-    jaAudioPlayer.setAudioSource(JustAudioBytesSource(bytes));
+    var loaded = jaAudioPlayer.setAudioSource(source);
+    // Awaited through [loaded] by the callers who want to know.
+    loaded.ignore();
+    _loaded = loaded;
     jaAudioPlayer.positionStream.listen((e) {
       if (disposed) {
         return;

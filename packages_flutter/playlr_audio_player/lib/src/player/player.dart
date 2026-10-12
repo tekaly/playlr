@@ -168,6 +168,10 @@ abstract class AppOrSongAudioPlayer {
 
 /// Single song audio player
 abstract class SongAudioPlayer implements AppOrSongAudioPlayer {
+  /// Completes once the audio source is loaded, throws when it cannot be (an
+  /// url that does not answer, a format the platform cannot play).
+  Future<void> get loaded;
+
   /// Dispose
   void dispose();
 
@@ -329,6 +333,11 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
   /// Position sink
   Sink<Duration?> get positionSink => _positionSubject.sink;
 
+  /// Loaded right away by default, an implementation loading its source
+  /// asynchronously says when it is done.
+  @override
+  Future<void> get loaded => Future<void>.value();
+
   @mustCallSuper
   @override
   void dispose() {
@@ -415,8 +424,11 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
     await audioPlayer!.setSource(UrlSource(url));
     audioPlayer!.resume().unawait();
   }*/
-  SongAudioPlayerImpl _newAudioPlayer(Uint8List data) {
-    var impl = newAudioPlayerInstanceFromBytes(data) as SongAudioPlayerImpl;
+  SongAudioPlayerImpl _newAudioPlayer(Uint8List data) =>
+      _addPlayer(newAudioPlayerInstanceFromBytes(data) as SongAudioPlayerImpl);
+
+  /// [impl] becomes the current player.
+  SongAudioPlayerImpl _addPlayer(SongAudioPlayerImpl impl) {
     _players.add(impl);
     _stateSubscription?.cancel();
     _positionSubscription?.cancel();
@@ -481,6 +493,13 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   /// Create a new audio player instance from bytes
   SongAudioPlayer newAudioPlayerInstanceFromBytes(Uint8List data);
 
+  /// Create a new audio player instance streaming the audio at [uri], its
+  /// source loading (see [SongAudioPlayer.loaded]).
+  ///
+  /// Not every implementation can: [UnsupportedError] by default.
+  SongAudioPlayer newAudioPlayerInstanceFromUri(Uri uri) =>
+      throw UnsupportedError('$name cannot play an url');
+
   /// Start play but returns before play terminates
   ///
   /// The song content is fetched through the global cache, see [loadSong];
@@ -522,6 +541,27 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
 
   /// Load a song from its content [bytes], becoming the current player.
   SongAudioPlayer loadBytes(Uint8List bytes) => _newAudioPlayer(bytes);
+
+  /// Load the audio at [uri], streamed (nothing is downloaded first),
+  /// becoming the current player: completes once its source is loaded,
+  /// throws when it cannot be.
+  Future<SongAudioPlayer> loadUri(Uri uri) async {
+    var player = _addPlayer(
+      newAudioPlayerInstanceFromUri(uri) as SongAudioPlayerImpl,
+    );
+    await player.loaded;
+    return player;
+  }
+
+  /// Start playing the audio at [uri] (see [loadUri]), returns once it
+  /// started, before play terminates.
+  Future<SongAudioPlayer> playUri(Uri uri) async {
+    // Stop current
+    stop().unawait();
+    var player = await loadUri(uri);
+    player.play().unawait();
+    return player;
+  }
 
   @override
   Future<void> resume() async {

@@ -14,6 +14,11 @@ class AppAudioPlayerJustAudio extends AppAudioPlayer with AppAudioPlayerMixin {
     return impl;
   }
 
+  /// Creates a new audio player instance streaming [uri] using JustAudio.
+  @override
+  SongAudioPlayer newAudioPlayerInstanceFromUri(Uri uri) =>
+      JustAudioPlayerImpl.fromUri(uri);
+
   /// The name of the audio player implementation.
   @override
   String get name => 'JustAudio';
