@@ -67,7 +67,7 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (debugPlayerDumpWriteLn != null) {
         // debugPlayerDumpWriteLn!('playbackEventStream ${e.processingState} ${e.updatePosition} / ${e.duration}');
         debugPlayerDumpWriteLn!(
-          'playbackEventStream $e${disposed ? [', disposed'] : ''}',
+          'playbackEventStream $e${disposed ? ' [disposed]' : ''}',
         );
       }
       if (disposed) {
@@ -90,7 +90,7 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
       if (debugPlayerDumpWriteLn != null) {
         // debugPlayerDumpWriteLn!('$this state ${e.processingState}, playing ${e.playing}, jaPlaying: ${jaAudioPlayer.playing}');
         debugPlayerDumpWriteLn!(
-          'playerStateStream $e${disposed ? [', disposed'] : ''}',
+          'playerStateStream $e${disposed ? ' [disposed]' : ''}',
         );
       }
       if (disposed) {
@@ -156,33 +156,12 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
     positionSink.add(position);
   }
 
-  bool get _active => true;
-
-  var _initialDurationRead = false;
-
   /// Trigger the duration getter to read the initial duration.
   void triggerDurationGetter() {
-    if (!_initialDurationRead) {
-      _initialDurationRead = true;
-      () async {
-        // Perform until it succeeds every seconds
-        // on linux we don't seem to get the info until too late
-        while (_active) {
-          // We don't seem to get the duration right
-          var duration = jaAudioPlayer.duration;
-          if (debugPlayerDumpWriteLn != null) {
-            debugPlayerDumpWriteLn!('$this triggerDurationGetter $duration');
-          }
-
-          if ((duration ?? Duration.zero) != Duration.zero) {
-            _addCurrentState();
-
-            break;
-          }
-          await sleep(1000);
-        }
-      }();
-    }
+    pollDurationOnce(
+      readDuration: () => jaAudioPlayer.duration,
+      onDuration: (_) => _addCurrentState(),
+    );
   }
 
   @override

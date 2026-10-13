@@ -29,9 +29,6 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   /// Saved duration of the audio.
   Duration? _duration;
 
-  /// Whether the initial duration has been read.
-  var _initialDurationRead = false;
-
   /// Whether the player has been stopped.
   var _stopped = false;
 
@@ -63,26 +60,11 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
 
   /// Triggers the duration getter to update the duration.
   void triggerDurationGetter() {
-    if (!_initialDurationRead) {
-      _initialDurationRead = true;
-      () async {
-        // Perform until it succeeds every seconds
-        // on linux we don't seem to get the info until too late
-        while (_active) {
-          // We don't seem to get the duration right
-          _duration = await audioPlayer.getDuration();
-          if (debugPlayerDumpWriteLn != null) {
-            debugPlayerDumpWriteLn!('$this triggerDurationGetter $_duration');
-          }
-          if ((_duration ?? Duration.zero) != Duration.zero) {
-            _updateDuration();
-
-            break;
-          }
-          await sleep(1000);
-        }
-      }();
-    }
+    pollDurationOnce(
+      isActive: () => _active,
+      readDuration: () async => _duration = await audioPlayer.getDuration(),
+      onDuration: (_) => _updateDuration(),
+    );
   }
 
   /// Creates a [BlueFireAudioPlayerImpl] from a byte buffer.
@@ -137,7 +119,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
           '$this onDurationChanged $duration${disposed ? ' [disposed]' : ''}',
         );
       }
-      if (!disposed) {
+      if (disposed) {
         return;
       }
       _duration = duration;
@@ -169,14 +151,16 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
         triggerDurationGetter();
       }();
     } else {
-      try {
-        audioPlayer.setSource(BytesSource(bytes));
-      } catch (e) {
-        if (kDebugMode) {
-          print('error setting source bytes $e');
+      unawaited(() async {
+        try {
+          await audioPlayer.setSource(BytesSource(bytes));
+        } catch (e) {
+          if (kDebugMode) {
+            print('error setting source bytes $e');
+          }
+          rethrow;
         }
-        rethrow;
-      }
+      }());
     }
   }
 

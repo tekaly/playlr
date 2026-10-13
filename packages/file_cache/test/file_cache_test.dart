@@ -8,13 +8,35 @@ import 'package:tekartik_file_cache/src/database.dart';
 import 'package:tekartik_http/http_memory.dart';
 import 'package:test/test.dart';
 
+/// Fails every fetch while [offline] is true.
+class _FileCacheDatabaseNetwork extends FileCacheDatabase {
+  var offline = false;
+
+  _FileCacheDatabaseNetwork({
+    required super.fs,
+    required super.databaseFactory,
+    required super.options,
+    super.httpClientFactory,
+  });
+
+  @override
+  Future<Uint8List> fetch(String source) async {
+    if (offline) {
+      throw StateError('offline');
+    }
+    return super.fetch(source);
+  }
+}
+
 void main() {
   group('simple', () {
     late HttpServer server;
     late Uri serverUri;
-    late FileCacheDatabase db;
+    late _FileCacheDatabaseNetwork db;
+    late Map<String, int> serverHits;
     setUp(() async {
       // Additional setup goes here.
+      serverHits = <String, int>{};
       server = await httpServerFactoryMemory.bind(InternetAddress.anyIPv4, 1);
       serverUri = server.clientUri;
       server.listen((event) async {
@@ -24,6 +46,7 @@ void main() {
         }
 
         var filename = url.basename(event.uri.path);
+        serverHits[filename] = (serverHits[filename] ?? 0) + 1;
         switch (filename) {
           case '1':
             await send([1, 2, 3]);
@@ -36,7 +59,7 @@ void main() {
             break;
         }
       });
-      db = FileCacheDatabase(
+      db = _FileCacheDatabaseNetwork(
         fs: newFileSystemMemory(),
         databaseFactory: newDatabaseFactoryMemory(),
         httpClientFactory: httpClientFactoryMemory,
@@ -69,6 +92,26 @@ void main() {
       expect((await db.getDbFile(source1)).fetched.v, isTrue);
       expect(await db.getContent(source3), [7, 8, 9]);
       expect((await db.getDbFile(source1)).fetched.v, isFalse);
+    });
+    test('fetched after a failed fetch', () async {
+      var source1 = sourceWithName('1');
+      var source2 = sourceWithName('2');
+      var source3 = sourceWithName('3');
+      // The first fetch of 3 fails, its record (created now) is not fetched
+      db.offline = true;
+      await expectLater(db.getContent(source3), throwsStateError);
+      db.offline = false;
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      expect(await db.getContent(source1), [1, 2, 3]);
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      expect(await db.getContent(source2), [4, 5, 6]);
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      // Fetched last: kept, the oldest fetched one (1) is evicted
+      expect(await db.getContent(source3), [7, 8, 9]);
+      expect((await db.getDbFile(source3)).fetched.v, isTrue);
+      expect((await db.getDbFile(source1)).fetched.v, isFalse);
+      expect(await db.getContent(source3), [7, 8, 9]);
+      expect(serverHits['3'], 1);
     });
   });
 }

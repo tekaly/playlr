@@ -167,7 +167,14 @@ class FileCacheDatabase {
   /// Fetches the content of a file from the given [source].
   Future<Uint8List> fetch(String source) async {
     return await wrap(
-      () => httpClientFactory.newClient().readBytes(Uri.parse(source)),
+      () async {
+        var client = httpClientFactory.newClient();
+        try {
+          return await client.readBytes(Uri.parse(source));
+        } finally {
+          client.close();
+        }
+      },
       prefix: 'fetch',
       details: source,
     );
@@ -265,7 +272,10 @@ class FileCacheDatabase {
                     await fileFromPath(path).parent.create(recursive: true);
                     await fileFromPath(path).writeAsBytes(content, flush: true);
                   }
-                  dbFile = cvFileStore.record(source).cv()..fetched.v = true;
+                  // The fetch time: the clean up keeps the most recent ones
+                  dbFile = cvFileStore.record(source).cv()
+                    ..fetched.v = true
+                    ..timestamp.v = Timestamp.now();
                   await dbFile.put(await getDatabase(), merge: true);
 
                   // Cleanup

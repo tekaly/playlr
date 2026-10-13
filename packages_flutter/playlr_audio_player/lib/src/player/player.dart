@@ -364,6 +364,43 @@ abstract class SongAudioPlayerImpl implements SongAudioPlayer {
     }
   }
 
+  var _durationPollStarted = false;
+
+  /// Polls [readDuration] every second until it gives a non zero duration,
+  /// then calls [onDuration] (some platforms, linux, report the duration late
+  /// or never).
+  ///
+  /// Only the first call starts a poll, it stops once the player is disposed
+  /// or when [isActive] returns false.
+  @protected
+  void pollDurationOnce({
+    required FutureOr<Duration?> Function() readDuration,
+    required void Function(Duration duration) onDuration,
+    bool Function()? isActive,
+  }) {
+    if (_durationPollStarted) {
+      return;
+    }
+    _durationPollStarted = true;
+    bool active() => !disposed && (isActive?.call() ?? true);
+    () async {
+      while (active()) {
+        var duration = await readDuration();
+        if (debugPlayerDumpWriteLn != null) {
+          debugPlayerDumpWriteLn!('$this pollDuration $duration');
+        }
+        if (disposed) {
+          break;
+        }
+        if (duration != null && duration != Duration.zero) {
+          onDuration(duration);
+          break;
+        }
+        await sleep(1000);
+      }
+    }();
+  }
+
   /// Constructor
   SongAudioPlayerImpl() {
     () async {
