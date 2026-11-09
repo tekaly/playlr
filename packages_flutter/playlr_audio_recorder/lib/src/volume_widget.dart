@@ -35,14 +35,18 @@ class WaveformProgressBarState extends State<WaveformProgressBar> {
   final double _decay = 0.5;
   final int _windowSize = 100;
 
-  @override
-  void initState() {
-    super.initState();
+  /// This bar's own moving average.
+  final _meter = AudioVolumeMeter();
+
+  /// The volume shown, from 0 to 1.
+  @visibleForTesting
+  double get currentVolume => _currentVolume;
+
+  void _listen() {
     _audioSubscription = widget.audioData.listen((audioList) {
       setState(() {
-        //print('Audio data: $audioList');
         // Calculate the volume from the audio data
-        _currentVolume = calculateVolume(
+        _currentVolume = _meter.calculateVolume(
           audioList,
           _windowSize,
           _sampleRate,
@@ -53,8 +57,24 @@ class WaveformProgressBarState extends State<WaveformProgressBar> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _listen();
+  }
+
+  @override
+  void didUpdateWidget(covariant WaveformProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.audioData != widget.audioData) {
+      // A new stream (a new recording): follow it.
+      unawaited(_audioSubscription.cancel());
+      _listen();
+    }
+  }
+
+  @override
   void dispose() {
-    _audioSubscription.cancel();
+    unawaited(_audioSubscription.cancel());
     super.dispose();
   }
 

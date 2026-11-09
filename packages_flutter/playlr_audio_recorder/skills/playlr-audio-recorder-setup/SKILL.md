@@ -65,7 +65,8 @@ Microphone access is the app's responsibility (this is what `record` needs):
   `String` `'Permission denied'`** (not an exception, not a typed error), and
   the stream is then closed. Always pass `onError:` to `listen` (or
   `handleError`) and show something to the user.
-- Each event is an `Int16List` view over the platform buffer: signed samples in
+- Each event is an `Int16List` of the chunk's samples (a view into the
+  platform message when its offset allows it, else a copy): signed samples in
   `-32768..32767`. Divide by `32768` for a `-1..1` double. Keep a copy
   (`Int16List.fromList(...)`, a `BytesBuilder`) if you accumulate a take; do
   not hold on to the event list itself.
@@ -84,9 +85,8 @@ Microphone access is the app's responsibility (this is what `record` needs):
   average of the absolute values clipped to `0..1`, so raw int16 values make it
   saturate at full height forever. That is the usual cause of "the bar is
   always full".
-- The level computation keeps module level state (a shared moving average
-  window), so show a single `WaveformProgressBar` at a time; two of them
-  interfere.
+- Each `WaveformProgressBar` keeps its own moving average, and follows a new
+  `audioData` stream given on a rebuild (the old one is cancelled).
 - `WaveformProgressBar` calls `setState` on every audio event: that is the
   recorder rate, several times per frame. Throttle the stream if the UI janks
   and do not put other expensive widgets in the same subtree.
@@ -94,7 +94,10 @@ Microphone access is the app's responsibility (this is what `record` needs):
   stream, otherwise a permission error becomes an unhandled zone error.
 - Tests: the `record` platform channels do not answer under `flutter test`.
   Keep the microphone behind your own interface and pump a
-  `Stream<Int16List>`/`Stream<List<double>>` of your own in widget tests.
+  `Stream<Int16List>`/`Stream<List<double>>` of your own in widget tests, or
+  set `RecordPlatform.instance` (exported by `package:record/record.dart`) to
+  a fake whose `startStream` gives your chunks (see
+  `test/playlr_audio_recorder_test.dart`).
 
 ## Examples
 
