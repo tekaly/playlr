@@ -234,10 +234,19 @@ class FileCacheDatabase {
   }
 
   /// Retrieves the content of a file from the cache or fetches it if not cached.
+  ///
+  /// An http(s) [source] is fetched once (keyed by the exact string), then
+  /// read from its local file (fetched again if the file is gone). Not
+  /// cached: a path or a `file:` uri on io (read from [fs]; pass
+  /// `Uri.file(path).toString()`), an `asset:` source (see
+  /// [FileCacheDatabaseAssetExt]). On the web a source without scheme is a
+  /// url relative to the page.
   Future<Uint8List> getContent(String source) async {
     return wrap(
       () async {
-        if (!isRunningAsJavascript) {
+        // Not on the web (dart2js nor dart2wasm): there such a source is a url
+        // relative to the page.
+        if (!kDartIsWeb) {
           // Handle io file if scheme is empty
           var uri = _sourceUri(source);
           // debugCacheWriteLn!('wrap $source ${uri?.scheme}');
@@ -252,47 +261,60 @@ class FileCacheDatabase {
           var content = await fetch(source);
           return content;
         }
-        var dbFile = await getDbFile(source);
-        var path = dbFile.path.v!;
-        Future<Uint8List> doRead() async {
-          return fileFromPath(path).readAsBytes();
-        }
 
-        if (dbFile.fetched.v != true) {
-          Future<Uint8List> doFetch() async {
-            var lock = _fetchLockMap[source] ??= Lock();
-            try {
-              return await lock.synchronized(() async {
-                var dbFile = await getDbFile(source);
-                if (dbFile.fetched.v != true) {
-                  var content = await fetch(source);
-                  try {
-                    await fileFromPath(path).writeAsBytes(content, flush: true);
-                  } catch (e) {
-                    await fileFromPath(path).parent.create(recursive: true);
-                    await fileFromPath(path).writeAsBytes(content, flush: true);
-                  }
-                  // The fetch time: the clean up keeps the most recent ones
-                  dbFile = cvFileStore.record(source).cv()
-                    ..fetched.v = true
-                    ..timestamp.v = Timestamp.now();
-                  await dbFile.put(await getDatabase(), merge: true);
-
-                  // Cleanup
-                  await cleanUp();
-
-                  return content;
-                }
-                return await doRead();
-              });
-            } finally {
-              _fetchLockMap.remove(source);
-            }
+        /// The content of the file of a fetched [dbFile], null when the file
+        /// is gone (deleted outside the cache, or its record survived it): it
+        /// is then fetched again.
+        Future<Uint8List?> readFetchedOrNull(DbFile dbFile) async {
+          if (dbFile.fetched.v != true) {
+            return null;
           }
-
-          return await doFetch();
+          try {
+            return await fileFromPath(dbFile.path.v!).readAsBytes();
+          } catch (e) {
+            if (debugCacheWriteLn != null) {
+              dumpLine('lost file of $source: $e');
+            }
+            return null;
+          }
         }
-        return doRead();
+
+        var content = await readFetchedOrNull(await getDbFile(source));
+        if (content != null) {
+          return content;
+        }
+        var lock = _fetchLockMap[source] ??= Lock();
+        try {
+          return await lock.synchronized(() async {
+            // Read again under the lock: another call might have fetched it
+            // (and the record, its path included, might have changed).
+            var dbFile = await getDbFile(source);
+            var content = await readFetchedOrNull(dbFile);
+            if (content != null) {
+              return content;
+            }
+            var path = dbFile.path.v!;
+            content = await fetch(source);
+            try {
+              await fileFromPath(path).writeAsBytes(content, flush: true);
+            } catch (e) {
+              await fileFromPath(path).parent.create(recursive: true);
+              await fileFromPath(path).writeAsBytes(content, flush: true);
+            }
+            // The fetch time: the clean up keeps the most recent ones
+            dbFile = cvFileStore.record(source).cv()
+              ..fetched.v = true
+              ..timestamp.v = Timestamp.now();
+            await dbFile.put(await getDatabase(), merge: true);
+
+            // Cleanup
+            await cleanUp();
+
+            return content;
+          });
+        } finally {
+          _fetchLockMap.remove(source);
+        }
       },
       prefix: 'get',
       details: source,

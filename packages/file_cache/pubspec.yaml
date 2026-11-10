@@ -1,5 +1,5 @@
 name: tekartik_file_cache
-description: A starting point for Dart libraries or applications.
+description: A cache of downloaded files (fs_shim files indexed in a sembast database), io, web and memory.
 version: 1.0.1
 publish_to: none
 

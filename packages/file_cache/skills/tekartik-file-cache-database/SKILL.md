@@ -40,9 +40,9 @@ dependencies:
 
 | Source | Behavior |
 |---|---|
-| `https://...`, `http://...` | Fetched once through the `HttpClientFactory`, written under `<path>/file/<generated key>`, indexed in the sembast database `<path>/data/file_cache.db`. Later calls read the local file. |
+| `https://...`, `http://...` | Fetched once through the `HttpClientFactory`, written under `<path>/file/<generated key>`, indexed in the sembast database `<path>/data/file_cache.db`. Later calls read the local file; a file gone (deleted outside the cache) is fetched again (since 2026-11-10). |
 | `asset:<key>` | Never cached: `fetch()` is called every time (the base class does an http read, `tekartik_file_cache_flutter` reads the Flutter asset bundle). |
-| a path or a `file:` uri | Read straight from the file system, not cached. VM/io only: on the web (`isRunningAsJavascript`) such a source goes through http, relative to the page. |
+| a path or a `file:` uri | Read straight from the file system, not cached. io only: on the web (`kDartIsWeb`, dart2js and dart2wasm since 2026-11-10) such a source goes through http, relative to the page. Prefer a `file:` uri (`Uri.file(path).toString()`): a Windows path (`C:\...`) parses as a url with the scheme `c`, a path holding `#` or `?` makes `toFilePath()` throw. |
 
 The cache is keyed by the **exact source string**.
 
@@ -63,15 +63,17 @@ The cache is keyed by the **exact source string**.
 - `path` is the cache root directory; everything lives under it
   (`dataPath` = `<path>/data`, `filesPath` = `<path>/file`,
   `databasePath` = `<path>/data/file_cache.db`). When `path` is null those are
-  relative to the current directory: always pass an absolute application
-  directory in a real app.
+  relative paths (the current directory on io, but some database factories
+  resolve a relative path under their own folder): always pass an absolute
+  application directory in a real app.
 - `fileCountMax` is a hard cap enforced by `cleanUp()` after every new fetch:
   the fetched records are sorted by `timestamp` and everything beyond
   `fileCountMax` is deleted (file + record). An evicted source is simply
   fetched again on the next `getContent`, so keep `fileCountMax` well above the
   working set.
 - Concurrent `getContent` calls for the same source share a single download (a
-  `Lock` per source); different sources download in parallel.
+  `Lock` per source); different sources download in parallel. After a failed
+  download, a waiting call and a new one may both download it again.
 - `getContent` holds the whole file in memory: fine for audio/images/json, not
   for very large files.
 - Do not cache urls that change on each request (signed urls, cache busting
@@ -104,6 +106,7 @@ The cache is keyed by the **exact source string**.
 
 ```dart
 import 'package:fs_shim/fs_io.dart' show fileSystemIo;
+import 'package:path/path.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:tekartik_file_cache/file_cache.dart';
 
@@ -112,10 +115,10 @@ Future<void> main() async {
     fs: fileSystemIo,
     databaseFactory: databaseFactoryIo,
     options: FileCacheDatabaseOptions(fileCountMax: 100),
-    path: '.local/file_cache',
+    path: absolute('.local', 'file_cache'),
   );
 
-  const source = 'https://example.com/media/song.mp3';
+  const source = 'https://tekartik-test-fixtures.web.app/http/connected.json';
   // Downloaded and stored the first time...
   var content = await cache.getContent(source);
   print('${content.length} bytes');

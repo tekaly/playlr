@@ -1,6 +1,6 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+/// A cache of downloaded files: [FileCacheDatabase.getContent] fetches a
+/// source once, then reads its local file (fs_shim), indexed in a sembast
+/// database.
 library;
 
 export 'src/database.dart'

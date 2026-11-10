@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:fs_shim/fs_memory.dart';
 import 'package:path/path.dart';
 import 'package:sembast/sembast_memory.dart';
+// ignore: depend_on_referenced_packages
+import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_file_cache/src/database.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_http/http_memory.dart';
@@ -28,7 +31,56 @@ class _FileCacheDatabaseNetwork extends FileCacheDatabase {
   }
 }
 
+/// Every fetch returns 'fetched <source>', recorded in [fetched].
+class _FileCacheDatabaseEcho extends FileCacheDatabase {
+  final fetched = <String>[];
+
+  _FileCacheDatabaseEcho({required super.fs})
+    : super(
+        databaseFactory: newDatabaseFactoryMemory(),
+        options: FileCacheDatabaseOptions(fileCountMax: 10),
+      );
+
+  @override
+  Future<Uint8List> fetch(String source) async {
+    fetched.add(source);
+    return Uint8List.fromList(utf8.encode('fetched $source'));
+  }
+}
+
 void main() {
+  group('source', () {
+    test('without scheme: a file on io, fetched on the web', () async {
+      var fs = newFileSystemMemory();
+      var db = _FileCacheDatabaseEcho(fs: fs);
+      if (kDartIsWeb) {
+        // A url relative to the page, also with dart2wasm.
+        expect(
+          utf8.decode(await db.getContent('assets/song.mp3')),
+          'fetched assets/song.mp3',
+        );
+      } else {
+        await fs.file('song.mp3').writeAsString('file content');
+        expect(utf8.decode(await db.getContent('song.mp3')), 'file content');
+        expect(db.fetched, isEmpty);
+      }
+    });
+
+    test('lost file is fetched again', () async {
+      var fs = newFileSystemMemory();
+      var db = _FileCacheDatabaseEcho(fs: fs);
+      var source = 'https://example.com/a.mp3';
+      expect(utf8.decode(await db.getContent(source)), 'fetched $source');
+      // Deleted outside the cache (or the record survived its file).
+      var dbFile = await db.getDbFile(source);
+      await db.fileFromPath(dbFile.path.v!).delete();
+      expect(utf8.decode(await db.getContent(source)), 'fetched $source');
+      expect(utf8.decode(await db.getContent(source)), 'fetched $source');
+      expect(db.fetched, [source, source]);
+      expect((await db.getDbFile(source)).fetched.v, isTrue);
+    });
+  });
+
   group('simple', () {
     late HttpServer server;
     late Uri serverUri;
