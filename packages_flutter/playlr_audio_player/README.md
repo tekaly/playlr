@@ -66,9 +66,9 @@ class PlayButton extends StatelessWidget {
 ```
 
 Platforms: the ones of the implementation. just_audio plays on Android,
-iOS, macOS and the web; Linux and Windows need `just_audio_mpv` and
-`just_audio_windows` in the app pubspec (see the
-`playlr_audio_player_just_audio` README and skill). On Windows call
+iOS, macOS, the web, Linux and Windows (`just_audio_mpv` and
+`just_audio_windows` come with `playlr_audio_player_just_audio`, Linux needs
+the `mpv` program, see its README and skill). On Windows call
 `sqfliteFfiInit()` before `initCacheDatabase` (the cache index is a sqflite
 database).
 
@@ -90,7 +90,8 @@ cache needed.
 - `playSong`/`playUri` load before playing: a second call made before the
   first song is loaded plays both songs, the first one out of reach of
   `pause()`/`stop()`. Disable the play action while a song loads.
-- `flutter test` cannot play audio: keep the player calls in a thin layer.
+- `flutter test` cannot play audio (no native player: the calls fail with a
+  `MissingPluginException`): keep the player calls in a thin layer.
 
 Package skills (for AI coding agents, `skills/`):
 `playlr-audio-player-playback` and `playlr-audio-player-cache`. Install them

@@ -75,8 +75,10 @@ Control API (`AppOrSongAudioPlayer`): `play()`, `pause()`, `resume()`, `stop()`,
   below).
 - Never hold a `SongAudioPlayer` beyond the current song: the pool disposes
   older ones. Keep the `AppAudioPlayer` and read `currentPlayer` when needed.
-- `flutter test` cannot play audio: platform channels never answer, so a
-  `playSong` awaited in a widget test hangs. Put the playback logic in a
+- `flutter test` cannot play audio: there is no native player, every player
+  call fails with a `MissingPluginException` (uncaught: the test fails), and
+  in `testWidgets` an awaited `playSong` also waits on the real IO of the
+  cache, which the fake async zone does not run. Put the playback logic in a
   controller that can be unit tested without the player (queue, repeat, clip
   bounds) and keep the `AppAudioPlayer` calls in a thin layer.
 - Debugging: set `debugPlayerDumpWriteLn = print` to trace the state events,

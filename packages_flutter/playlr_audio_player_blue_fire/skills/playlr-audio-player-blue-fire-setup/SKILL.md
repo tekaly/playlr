@@ -1,6 +1,6 @@
 ---
 name: playlr-audio-player-blue-fire-setup
-description: 'Set up the audioplayers (blue_fire) implementation of the playlr audio player (playlr_audio_player_blue_fire - AppAudioPlayerBlueFire, appAudioPlayerBlueFire, debugBlueFireAudioPlayer) in a Flutter app on Android, iOS, macOS, web, Windows and Linux - dependency, creating the player, playBytes/playSong, state and position streams, Linux temp file and duration caveats, debugging. Use when adding audio playback with playlr, when choosing between the blue_fire and just_audio backends, or when playback or duration misbehaves on one platform.'
+description: 'Set up the audioplayers (blue_fire) implementation of the playlr audio player (playlr_audio_player_blue_fire - AppAudioPlayerBlueFire, appAudioPlayerBlueFire, debugBlueFireAudioPlayer) in a Flutter app on Android, iOS, macOS, web, Windows and Linux - dependency, creating the player, playBytes/playSong, waiting for loaded, state and position streams, no url streaming, Linux temp file and duration caveats, debugging. Use when adding audio playback with playlr, when choosing between the blue_fire and just_audio backends, or when playback or duration misbehaves on one platform.'
 metadata:
   author: tekartik
   package: playlr_audio_player_blue_fire
@@ -12,7 +12,9 @@ metadata:
 the `playlr-audio-player-playback` skill) implemented with
 `package:audioplayers` (the Blue Fire package). The content always reaches
 audioplayers as **bytes**: the same code path plays a download, a cached file
-or an asset on every platform, no url is ever handed to the native player.
+or an asset on every platform, no url is ever handed to the native player
+(`playUri`/`loadUri` throw an `UnsupportedError`: streaming an url needs the
+just_audio backend).
 
 ## Contents
 - [Dependencies](#dependencies)
@@ -29,12 +31,10 @@ dependencies:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player
-    version: '>=0.0.1'
   playlr_audio_player_blue_fire:
     git:
       url: https://github.com/tekaly/playlr.git
       path: packages_flutter/playlr_audio_player_blue_fire
-    version: '>=0.0.1'
 ```
 
 `audioplayers` brings its own platform implementations (android, darwin, web,
@@ -62,11 +62,18 @@ installed on the build machine.
   `PlayerState`) in the app: the implementation owns them and disposes them.
   Each `playBytes`/`loadBytes` creates a new underlying `AudioPlayer`; the
   facade keeps a pool of 2 and disposes the older ones.
+- `playBytes` returns before the native player has the source. To seek or
+  read the song before it plays, `await song.loaded` on the `SongAudioPlayer`
+  that `loadBytes`/`playBytes` returns: it completes once audioplayers
+  prepared the bytes and throws (a `PlatformException`) when the native
+  player refuses them (an unsupported format).
 - **Linux**: the bytes are written to a temporary `.mp3` file in the system
-  temp directory (5 rotating names) and played with `setSourceDeviceFile`;
-  everywhere else a `BytesSource` is used directly. So on Linux keep the
-  content short lived, expect a file on disk, and do not assume a non mp3
-  container plays.
+  temp directory (6 rotating names, the same for every app using this
+  package, never deleted) and played with `setSourceDeviceFile`; everywhere
+  else a `BytesSource` is used directly (audioplayers itself goes through a
+  temp file on iOS and macOS). So on Linux expect a file on disk, two apps
+  playing at once can overwrite each other's file, and do not assume a non
+  mp3 container plays.
 - **Duration**: on Linux it is not available immediately; the implementation
   polls `getDuration()` every second until it is non zero, so
   `AppAudioPlayerState.duration` (and `state.isReady`) can stay null/false for
@@ -82,8 +89,9 @@ installed on the build machine.
   prints the player creation, and `debugPlayerDumpWriteLn = print` (from
   `playlr_audio_player`) traces every state, duration and position event of
   the facade.
-- Widget tests: the audioplayers platform channels do not answer under
-  `flutter test`, so an awaited `playBytes`/`playSong` hangs. Test the
+- Widget tests: there is no native player under `flutter test`: `playBytes`
+  returns, then every player call fails with a `MissingPluginException`
+  (uncaught: the test fails; `loaded` throws it). Test the
   playlist/controller logic against the `AppAudioPlayer` abstraction (a fake)
   and keep the real player in the composition root.
 
@@ -123,6 +131,29 @@ Future<void> playContent(AppAudioPlayer player, Uint8List bytes) async {
 }
 ```
 
+### Starting a song at a position
+
+```dart
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:playlr_audio_player/player.dart';
+
+/// Loads [bytes], seeks to [position] once the source is ready, then plays.
+Future<void> playFrom(
+  AppAudioPlayer player,
+  Uint8List bytes,
+  Duration position,
+) async {
+  var song = player.loadBytes(bytes);
+  // Throws when the native player refuses the bytes.
+  await song.loaded;
+  await song.seek(position);
+  // Not awaited: on just_audio play() completes when the song ends.
+  unawaited(song.play());
+}
+```
+
 ### Playing a source through the global cache
 
 ```dart
@@ -145,8 +176,12 @@ Future<void> main() async {
 
 ### A play/pause button on the state stream
 
+`package:material_ui/material_ui.dart` (`material_ui: ">=1.5.0"` in the app
+dependencies) rather than `package:flutter/material.dart`, deprecated on the
+Flutter beta channel.
+
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:playlr_audio_player/player.dart';
 
 /// Play/pause and progress, driven by the player state.

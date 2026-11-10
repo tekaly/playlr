@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:audioplayers_platform_interface/audioplayers_platform_interface.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:playlr_audio_player_blue_fire/src/player/blue_fire_audio_player_impl.dart';
 
@@ -9,12 +11,33 @@ import 'package:playlr_audio_player_blue_fire/src/player/blue_fire_audio_player_
 class _FakeAudioplayersPlatform extends AudioplayersPlatformInterface {
   final _events = <String, StreamController<AudioEvent>>{};
 
+  /// When false, a source is prepared only when the test calls [prepare].
+  var autoPrepare = true;
+
+  /// The error the native side reports when a source is set.
+  Object? sourceError;
+
   StreamController<AudioEvent> _eventController(String playerId) =>
       _events[playerId] ??= StreamController<AudioEvent>.broadcast();
 
   /// Send a native event for [playerId].
   void addEvent(String playerId, AudioEvent event) =>
       _eventController(playerId).add(event);
+
+  /// The native player of [playerId] is ready to play its source.
+  void prepare(String playerId) => addEvent(
+    playerId,
+    const AudioEvent(eventType: AudioEventType.prepared, isPrepared: true),
+  );
+
+  void _sourceSet(String playerId) {
+    var error = sourceError;
+    if (error != null) {
+      _eventController(playerId).addError(error);
+    } else if (autoPrepare) {
+      prepare(playerId);
+    }
+  }
 
   @override
   Stream<AudioEvent> getEventStream(String playerId) =>
@@ -74,12 +97,7 @@ class _FakeAudioplayersPlatform extends AudioplayersPlatformInterface {
     String playerId,
     Uint8List bytes, {
     String? mimeType,
-  }) async {
-    addEvent(
-      playerId,
-      const AudioEvent(eventType: AudioEventType.prepared, isPrepared: true),
-    );
-  }
+  }) async => _sourceSet(playerId);
 
   @override
   Future<void> setSourceUrl(
@@ -87,12 +105,7 @@ class _FakeAudioplayersPlatform extends AudioplayersPlatformInterface {
     String url, {
     bool? isLocal,
     String? mimeType,
-  }) async {
-    addEvent(
-      playerId,
-      const AudioEvent(eventType: AudioEventType.prepared, isPrepared: true),
-    );
-  }
+  }) async => _sourceSet(playerId);
 
   @override
   Future<void> setVolume(String playerId, double volume) async {}
@@ -171,5 +184,42 @@ void main() {
       await pumpEventQueue();
       expect(player.disposed, isTrue);
     });
+    test('loaded completes once the source is prepared', () async {
+      platform.autoPrepare = false;
+      var player = _BytesPlayer();
+      var loaded = false;
+      unawaited(player.loaded.then((_) => loaded = true));
+      await pumpEventQueue();
+      expect(loaded, isFalse, reason: 'source not prepared yet');
+      platform.prepare(player.audioPlayer.playerId);
+      await player.loaded;
+      expect(loaded, isTrue);
+      player.dispose();
+      await pumpEventQueue();
+    }, timeout: const Timeout(Duration(seconds: 10)));
+    test('a refused source fails loaded, nothing uncaught', () async {
+      platform.sourceError = PlatformException(
+        code: 'AndroidAudioError',
+        message: 'unsupported format',
+      );
+      var player = _BytesPlayer();
+      await expectLater(player.loaded, throwsA(isA<PlatformException>()));
+      await pumpEventQueue();
+      player.dispose();
+      await pumpEventQueue();
+    }, timeout: const Timeout(Duration(seconds: 10)));
+    test('loaded, once done, completes in the zone that awaits it', () async {
+      var player = _BytesPlayer();
+      await player.loaded;
+      // The fake async zone of a widget test, the player loaded in runAsync.
+      fakeAsync((async) {
+        var done = false;
+        player.loaded.then((_) => done = true);
+        async.flushMicrotasks();
+        expect(done, isTrue);
+      });
+      player.dispose();
+      await pumpEventQueue();
+    }, timeout: const Timeout(Duration(seconds: 10)));
   });
 }

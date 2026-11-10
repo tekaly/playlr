@@ -8,10 +8,11 @@ import 'package:playlr_audio_player/src/import.dart';
 // ignore: implementation_imports
 import 'package:playlr_audio_player/src/player/player.dart';
 
-/// Index for temporary files on Linux.
+/// Index of the last temporary file written on Linux (the bytes are played
+/// from one of 6 rotating files of the system temp folder).
 var linuxIndex = 0;
 
-/// Enables or disables debug output for BlueFire audio player.
+/// Prints the creation of each song player when true.
 var debugBlueFireAudioPlayer = false; // devWarning(true);
 
 /// Implementation of [SongAudioPlayerImpl] using the BlueFire audioplayers package.
@@ -23,8 +24,45 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   /// Whether to use IO (Linux) specific implementation.
   bool get useIo => !kIsWeb && io.Platform.isLinux;
 
-  /// Future that completes when the IO source is ready.
-  late final Future _ioSourceReady;
+  /// The source loading, kept only while pending: a completed future kept in
+  /// the player would call back in the zone it was created in (a widget test
+  /// awaiting it in its fake async zone would wait forever).
+  Future<void>? _loading;
+
+  /// The error of the source loading, once failed.
+  Object? _loadError;
+  StackTrace? _loadStackTrace;
+
+  /// Completes once the bytes are set as the source of the native player
+  /// (prepared), throws when the native player refuses them.
+  @override
+  Future<void> get loaded {
+    var loading = _loading;
+    if (loading != null) {
+      return loading;
+    }
+    var error = _loadError;
+    if (error != null) {
+      return Future<void>.error(error, _loadStackTrace);
+    }
+    return Future<void>.value();
+  }
+
+  /// Tracks the source [loading]: its error is kept for [loaded] (and play()
+  /// on Linux), never an uncaught error.
+  void _trackLoading(Future<void> loading) {
+    _loading = loading;
+    loading.then(
+      (_) {
+        _loading = null;
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        _loadError = error;
+        _loadStackTrace = stackTrace;
+        _loading = null;
+      },
+    );
+  }
 
   /// Saved duration of the audio.
   Duration? _duration;
@@ -56,6 +94,14 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
         position: getCurrentPositionSync(),
       ),
     );
+  }
+
+  /// An error of the native player (its event stream): a refused source is
+  /// reported through [loaded], audioplayers logs it too.
+  void _onNativeError(Object error) {
+    if (debugPlayerDumpWriteLn != null) {
+      debugPlayerDumpWriteLn!('$this native error $error');
+    }
   }
 
   /// Triggers the duration getter to update the duration.
@@ -124,7 +170,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
       }
       _duration = duration;
       _updateDuration();
-    });
+    }, onError: _onNativeError);
 
     audioPlayer.onPositionChanged.listen((e) {
       if (debugPlayerDumpWriteLn != null) {
@@ -136,8 +182,8 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
       positionSink.add(e);
     });
     if (useIo) {
-      _ioSourceReady = () async {
-        // 5 temp files
+      _trackLoading(() async {
+        // 6 rotating temp files
         if (linuxIndex > 5) {
           linuxIndex = 0;
         }
@@ -149,9 +195,9 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
         await io.File(file).writeAsBytes(bytes);
         await audioPlayer.setSourceDeviceFile(file);
         triggerDurationGetter();
-      }();
+      }());
     } else {
-      unawaited(() async {
+      _trackLoading(() async {
         try {
           await audioPlayer.setSource(BytesSource(bytes));
         } catch (e) {
@@ -169,7 +215,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   Future<void> resume() async {
     _stopped = false;
     if (useIo) {
-      await _ioSourceReady;
+      await loaded;
     }
     await audioPlayer.resume();
   }
@@ -188,7 +234,7 @@ class BlueFireAudioPlayerImpl extends SongAudioPlayerImpl
   Future<void> play() async {
     _stopped = false;
     if (useIo) {
-      await _ioSourceReady;
+      await loaded;
     }
     await audioPlayer.resume();
   }

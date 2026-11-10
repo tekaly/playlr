@@ -8,7 +8,8 @@ import 'package:playlr_audio_player/src/import.dart';
 import 'package:playlr_audio_player/src/player/player.dart';
 import 'package:playlr_audio_player_just_audio/src/player/source.dart';
 
-/// Debug flag for JustAudio player.
+/// Not read: the just_audio events are traced through
+/// `debugPlayerDumpWriteLn` (`package:playlr_audio_player/player.dart`).
 var debugJustAudioPlayer = false; // devWarning(true);
 
 /// Convert just audio state to app audio player state enum.
@@ -43,10 +44,27 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
   /// Native instance of the JustAudio player.
   late final AudioPlayer jaAudioPlayer;
 
-  late final Future<void> _loaded;
+  /// The source loading, kept only while pending: a completed future kept in
+  /// the player would call back in the zone it was created in (a widget test
+  /// awaiting it in its fake async zone would wait forever).
+  Future<void>? _loading;
+
+  /// The error of the source loading, once failed.
+  Object? _loadError;
+  StackTrace? _loadStackTrace;
 
   @override
-  Future<void> get loaded => _loaded;
+  Future<void> get loaded {
+    var loading = _loading;
+    if (loading != null) {
+      return loading;
+    }
+    var error = _loadError;
+    if (error != null) {
+      return Future<void>.error(error, _loadStackTrace);
+    }
+    return Future<void>.value();
+  }
 
   /// Creates a new instance of [JustAudioPlayerImpl] from bytes.
   JustAudioPlayerImpl.fromBytes(Uint8List bytes)
@@ -126,10 +144,20 @@ class JustAudioPlayerImpl extends SongAudioPlayerImpl
         }
       });
     }
-    var loaded = jaAudioPlayer.setAudioSource(source);
-    // Awaited through [loaded] by the callers who want to know.
-    loaded.ignore();
-    _loaded = loaded;
+    var loading = jaAudioPlayer.setAudioSource(source);
+    _loading = loading;
+    // Awaited through [loaded] by the callers who want to know, the error
+    // kept for them (never an uncaught error).
+    loading.then(
+      (_) {
+        _loading = null;
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        _loadError = error;
+        _loadStackTrace = stackTrace;
+        _loading = null;
+      },
+    );
     jaAudioPlayer.positionStream.listen((e) {
       if (disposed) {
         return;

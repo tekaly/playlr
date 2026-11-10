@@ -4,7 +4,11 @@ import 'package:playlr_audio_player/player.dart';
 import '../import.dart';
 import 'just_audio_audio_player_impl.dart';
 
-/// App audio player implementation using the JustAudio package.
+/// The [AppAudioPlayer] implemented with `package:just_audio`: plays bytes
+/// (`playBytes`, `playSong` through the global cache) and streams an url
+/// (`playUri`/`loadUri`) on Android, iOS, macOS, web, Linux (mpv) and Windows.
+///
+/// Create one for the app (or use [appAudioPlayerJustAudio]).
 class AppAudioPlayerJustAudio extends AppAudioPlayer with AppAudioPlayerMixin {
   /// Creates a new audio player instance from bytes using JustAudio.
   @override
@@ -24,5 +28,5 @@ class AppAudioPlayerJustAudio extends AppAudioPlayer with AppAudioPlayerMixin {
   String get name => 'JustAudio';
 }
 
-/// Singleton instance of [AppAudioPlayerJustAudio].
+/// A ready made [AppAudioPlayerJustAudio], for an app wanting one player.
 final AppAudioPlayer appAudioPlayerJustAudio = AppAudioPlayerJustAudio();
