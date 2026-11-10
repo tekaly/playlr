@@ -33,8 +33,14 @@ first `playSong`.
 
 `initCacheDatabase({required String packageName, String? rootPath})` creates
 the database once (idempotent, lock protected) and sets `globalCacheOrNull`.
-On io the default `rootPath` is the application documents directory of
-`packageName`; on the web it is an idb backed file system.
+On io the cache lives in the `file_cache` folder of the application documents
+directory of `packageName` (`<documents>/file_cache/data/file_cache.db` and
+`<documents>/file_cache/file/`), or in `rootPath` when given; on the web it is
+an idb backed file system. `clearCache()` deletes the `data/` and `file/`
+folders of that root: give a `rootPath` of its own, never a folder the app
+writes to. (Before 2026-11 the documents directory itself was the root: an
+app updated from such a version downloads its urls once again, the old
+`<documents>/data/file_cache.db` and `<documents>/file/` stay on disk.)
 
 ## Guidelines
 

@@ -11,7 +11,16 @@ export 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 FileCacheDatabase? globalCacheOrNull;
 final _lock = Lock();
 
-/// Initializes the cache database (if not already initialized).
+/// The folder of the cache in the application documents directory.
+const _cacheFolderName = 'file_cache';
+
+/// Initializes the cache database (if not already initialized) and sets
+/// [globalCacheOrNull].
+///
+/// The cache lives in [rootPath] when set (its `data/` and `file/` sub
+/// folders, deleted by `clearCache()`), otherwise on io in the `file_cache`
+/// folder of the application documents directory of [packageName], on the
+/// web in the browser storage.
 Future<FileCacheDatabase> initCacheDatabase({
   String? rootPath,
   required String packageName,
@@ -29,9 +38,14 @@ Future<FileCacheDatabase> initCacheDatabase({
     if (path == null) {
       if (!kIsWeb) {
         fs = app.fs;
-        path = (await fs.getApplicationDocumentsDirectory(
-          packageName: packageName,
-        )).path;
+        // A folder of its own: clearCache() deletes its data and file
+        // folders.
+        path = fs.path.join(
+          (await fs.getApplicationDocumentsDirectory(
+            packageName: packageName,
+          )).path,
+          _cacheFolderName,
+        );
       }
     }
     var db = FileCacheDatabaseFlutter(

@@ -39,7 +39,7 @@ Control API (`AppOrSongAudioPlayer`): `play()`, `pause()`, `resume()`, `stop()`,
 - Create **one** `AppAudioPlayer` for the whole app (from an implementation
   package, e.g. `AppAudioPlayerJustAudio()` or the `appAudioPlayerJustAudio`
   singleton) and keep it in your app context. Never create one per song: the
-  player manages its own pool of `SongAudioPlayer`s (the last 3 are kept,
+  player manages its own pool of `SongAudioPlayer`s (the last 2 are kept,
   older ones are disposed).
 - Pick the loading path that matches where the audio bytes come from:
   - `playBytes(Uint8List bytes)` / `loadBytes(bytes)` when the app already has
@@ -50,7 +50,10 @@ Control API (`AppOrSongAudioPlayer`): `play()`, `pause()`, `resume()`, `stop()`,
     **must** have been initialized with `initCacheDatabase(...)` first;
     otherwise `loadSong` throws a `StateError` ("No global cache").
 - `playSong`/`playBytes` stop the current song, start the new one and return
-  **before** playback ends. To play a list, listen to `stateStream` and move on
+  **before** playback ends. `playSong`/`playUri` load first: a second call
+  made while the first song is still loading plays both, and the first one
+  is no longer the current player (`pause()`/`stop()` miss it). Ignore or
+  disable play requests while one is loading. To play a list, listen to `stateStream` and move on
   when `stateEnum == AppAudioPlayerStateEnum.completed` (see the queue
   example). Do not poll `getDuration()` to detect the end.
 - Drive a seek bar from `positionStream` (about 10 updates per second while
@@ -64,7 +67,9 @@ Control API (`AppOrSongAudioPlayer`): `play()`, `pause()`, `resume()`, `stop()`,
   resets them on some backends. `setVolume(0)` is how to mute.
 - Play a fragment of a file with `playFromTo(from: ..., to: ...)` on the player
   returned by `loadSong`/`loadBytes`: it waits for the song to be ready, seeks,
-  fades in, fades out at `to`, pauses and completes. For a live player (a seek
+  fades in, fades out at `to`, pauses, puts the volume back to 1 and
+  completes. It never completes when its song player is disposed meanwhile
+  (two other songs loaded). For a live player (a seek
   bar that must stay within a clip) implement the clip yourself: `seek(start)`
   after loading, watch `positionStream` and move on at the end mark (example
   below).
@@ -82,6 +87,8 @@ Control API (`AppOrSongAudioPlayer`): `play()`, `pause()`, `resume()`, `stop()`,
 ### Play the bytes the app already has
 
 ```dart
+import 'dart:typed_data';
+
 import 'package:playlr_audio_player/player.dart';
 import 'package:playlr_audio_player_just_audio/player.dart';
 
@@ -125,6 +132,11 @@ Future<void> playFile(AppAudioPlayer player, String path) =>
 ### Chain songs: move on when the current one completes
 
 ```dart
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:playlr_audio_player/player.dart';
+
 class SongQueue {
   final AppAudioPlayer player;
   final List<Uint8List> songs;

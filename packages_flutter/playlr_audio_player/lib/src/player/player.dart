@@ -195,7 +195,9 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
     }
   }
 
-  /// Play helper
+  /// Plays a clip: waits for the player to be ready, seeks to [from] (fading
+  /// in), plays at [playbackRate] and completes at [to] (fading out, then
+  /// paused, the volume back to 1) or at the end of the song.
   Future<void> playFromTo({
     Duration? from,
     Duration? to,
@@ -235,6 +237,8 @@ extension SongAudioPlayerExtension on AppOrSongAudioPlayer {
           end();
           await fadeOut();
           await pause();
+          // Paused: the volume is back for the next play.
+          await setVolume(1);
           completer.safeComplete();
         }
       }
@@ -541,6 +545,9 @@ abstract class AppAudioPlayer implements AppOrSongAudioPlayer {
   ///
   /// The song content is fetched through the global cache, see [loadSong];
   /// use [playBytes] when the content is already at hand.
+  ///
+  /// A call made while a previous one still loads does not cancel it: both
+  /// songs play. Wait for the previous call first.
   Future<SongAudioPlayer> playSong(AppAudioPlayerSong song) async {
     // Stop current
     stop().unawait();
