@@ -79,6 +79,12 @@ sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
   policy): start playing from a tap handler, not from `initState`. A blocked
   autoplay shows up as a `preparing`/`ready` state that never turns `playing`.
 - A Linux app that plays nothing usually lacks the `mpv` program.
+- Linux: `just_audio_mpv` runs on `mpv_dart` 0.0.1, whose `MPVPlayer` puts
+  every player on one IPC socket (`/tmp/MPV_Dart.sock`, the requested one is
+  ignored): with the pool of 2 song players the next song can break the
+  previous one, and a track may stay `preparing`. Dispose the previous song
+  player before loading the next one (as `playlr_player_example_app` does),
+  or use the blue_fire backend on Linux.
 - The alternative backend `playlr_audio_player_blue_fire` (audioplayers)
   exposes the same `AppAudioPlayer`; choose at startup and keep one instance.
 - Debugging: `debugPlayerDumpWriteLn = print` (from `playlr_audio_player`)

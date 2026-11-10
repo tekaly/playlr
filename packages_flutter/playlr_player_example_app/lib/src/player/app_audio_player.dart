@@ -11,8 +11,8 @@ export 'package:playlr_audio_player/player.dart';
 enum AppAudioPlayerImplementation {
   /// just_audio, the default on every platform.
   ///
-  /// Needs `just_audio_mpv` on linux and `just_audio_windows` on windows,
-  /// both added as direct dependencies of the app.
+  /// Goes through `just_audio_mpv` on linux and `just_audio_windows` on
+  /// windows (both come with `playlr_audio_player_just_audio`).
   justAudio,
 
   /// audioplayers (blue fire), kept as an alternative to compare.

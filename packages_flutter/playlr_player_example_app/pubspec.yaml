@@ -32,8 +32,9 @@ dependencies:
       path: packages_flutter/playlr_audio_player_blue_fire
     version: '>=0.2.0'
 
-  # just_audio is used on every platform, the extra packages below add the
-  # missing linux/windows implementations (they must be added by the app).
+  # just_audio is used on every platform; linux and windows go through
+  # just_audio_mpv and just_audio_windows, which come with
+  # playlr_audio_player_just_audio (listing them here is optional).
   just_audio: '>=0.9.0'
   just_audio_mpv:
   just_audio_windows:
@@ -44,6 +45,9 @@ dependencies:
 
   # Needed for the file cache database on windows.
   sqflite_common_ffi: ">=2.4.1"
+
+  # One song load at a time in the playlist.
+  synchronized: ">=3.4.1"
 
   # The design widgets, as the tekartik flutter packages use them.
   material_ui: ">=1.5.0"

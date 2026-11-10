@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:playlr_asset_example_flutter/playlr_asset_example_flutter.dart';
 import 'package:playlr_player_example_app/src/player/app_audio_player.dart';
 import 'package:playlr_player_example_app/src/player/song_loader.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// State exposed by [PlaylistPlayerController].
 class PlaylistPlayerState {
@@ -77,6 +78,11 @@ class PlaylistPlayerController {
   var _order = <int>[];
   var _orderIndex = 0;
   var _playRequestId = 0;
+
+  /// One song load at a time, in the order of the requests: the song loaded
+  /// last becomes the current player of [audioPlayer], the one its controls
+  /// (pause, seek) reach, so it must be the last one requested.
+  final _loadLock = Lock();
   StreamSubscription<AppAudioPlayerState>? _stateSubscription;
 
   /// Playlist player.
@@ -116,8 +122,14 @@ class PlaylistPlayerController {
     var requestId = ++_playRequestId;
     state.value = state.value.copyWith(asset: asset, loading: true);
     try {
-      var songPlayer = await loadSongReady(audioPlayer, asset.song);
-      if (requestId != _playRequestId) {
+      var songPlayer = await _loadLock.synchronized(() async {
+        if (requestId != _playRequestId) {
+          // Superseded while an earlier song was loading: load nothing.
+          return null;
+        }
+        return await loadSongReady(audioPlayer, asset.song);
+      });
+      if (songPlayer == null || requestId != _playRequestId) {
         // A newer request superseded this one.
         return;
       }

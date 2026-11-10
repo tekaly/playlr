@@ -26,14 +26,14 @@ everywhere.
 | --- | --- | --- |
 | web | `just_audio` | verified: real time position, clips, auto next |
 | android/ios/macos | `just_audio` | endorsed implementations |
-| windows | `just_audio` + `just_audio_windows` | `just_audio_windows` must be added by the app |
+| windows | `just_audio` (through `just_audio_windows`) | `sqfliteFfiInit()` for the cache, done in `initAppContext()` |
 | linux | `audioplayers` (blue fire) | see below |
 
 So `just_audio` alone is *almost* enough: it is the default everywhere except
 on linux.
 
-On linux `just_audio` needs `just_audio_mpv`, which delegates to `mpv_dart`.
-That one is not reliable today:
+On linux `just_audio` goes through `just_audio_mpv`, which delegates to
+`mpv_dart`. That one is not reliable today:
 
 - `mpv_dart` 0.0.1 ignores the requested ipc socket and always uses
   `/tmp/MPV_Dart.sock`, so two players (the audio player keeps a small pool)
@@ -57,7 +57,15 @@ app then releases the previous mpv instance before loading the next song, see
 
 ## Run
 
+The platform folders are not in git: create them once (`--empty` keeps
+`lib/` and adds no template test), then run.
+
 ```bash
+flutter create --empty --platforms=web,linux,windows,macos,android,ios .
 flutter run -d chrome
 flutter run -d linux
 ```
+
+On linux the `mpv` program (for `just_audio`) and the GStreamer packages
+(for `audioplayers`) must be installed. `flutter test` runs the widget test
+of the menu and the playlist controller test (a fake player, no audio).

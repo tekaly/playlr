@@ -69,6 +69,10 @@ packages (`clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev`).
   do not `await` `play()`/`resume()` before doing something else.
 - Bytes are served to the native player as `audio/mp3`: other formats may
   not play on iOS and macOS.
+- Linux: `just_audio_mpv` runs on `mpv_dart` 0.0.1, which puts every player
+  on one IPC socket (`/tmp/MPV_Dart.sock`): the next song can break the
+  previous one (the pool keeps 2 song players). `playlr_player_example_app`
+  uses the blue_fire backend on Linux.
 - Web: the first play must follow a user gesture (browser autoplay policy).
 - `flutter test` has no native player: every player call fails with a
   `MissingPluginException` (uncaught, the test fails). Test the app logic
