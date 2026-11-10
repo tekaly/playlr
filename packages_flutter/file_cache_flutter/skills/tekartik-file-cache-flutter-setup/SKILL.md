@@ -43,9 +43,8 @@ dependencies:
 
 ## Guidelines
 
-- Warm the cache up at startup if you want to: `await getFileCache()` right
-  after `WidgetsFlutterBinding.ensureInitialized()` in `main()`, so the first
-  `getContent` does not pay for the database open.
+- The database opens on the first `getContent` (not when the cache is
+  created): `getFileCache()` at startup only resolves the folder.
 - Create the cache **once** for the whole app (it opens a sembast database and
   keeps a per source download lock) and hand it around, or keep it in a
   memoized future; never build one per widget or per request.
@@ -59,17 +58,24 @@ dependencies:
 - `databaseFactory`: `getDatabaseFactory(packageName: <bundle id>)` from
   `package:tekartik_app_flutter_sembast/sembast.dart`. `packageName` matters on
   Linux and Windows (it names the data directory) and is ignored elsewhere.
-- `path` is the cache root. On io pass
-  `(await fs.getApplicationDocumentsDirectory(packageName: <bundle id>)).path`
-  (extension of `tekartik_app_flutter_fs`); on the web pass null, the idb file
-  system is already private to the app origin. Never hardcode a posix path.
+- `path` is the cache root, a folder of its own: the cache writes
+  `<path>/data/file_cache.db` and `<path>/file/*`, and `clearCache()`
+  deletes `<path>/data` and `<path>/file` recursively. On io pass a sub
+  folder of the documents directory,
+  `fs.path.join((await fs.getApplicationDocumentsDirectory(packageName:
+  <bundle id>)).path, 'file_cache')` (extension of
+  `tekartik_app_flutter_fs`), never the documents directory itself (its
+  `data/` folder would be wiped by `clearCache()`); on the web pass null,
+  the idb file system is already private to the app origin. Never hardcode
+  a posix path.
 - `options: FileCacheDatabaseOptions(fileCountMax: 100)` caps the number of
   cached files; the oldest fetched entries are deleted after each new download.
 - `await cache.getContent(source)` returns the whole content as a `Uint8List`:
   an http(s) url is downloaded once and read from the file system afterwards, a
   source built with `cache.assetToSource('assets/x.mp3')` (i.e. `asset:<key>`)
-  is read from `rootBundle` **every time and never cached**, and on io a plain
-  path or a `file:` uri is read directly.
+  is read from `rootBundle` **every time and never cached**, and on io a
+  `file:` uri is read directly: pass `Uri.file(path).toString()`, a raw path
+  with `#` or `?` throws and a Windows path (`C:\...`) is taken for a url.
 - Declare the assets in the app `pubspec.yaml` (`flutter: assets:`) before
   using `asset:` sources, and pass the same key as
   `rootBundle.load`/`AssetImage` (`assets/audio/beep.mp3`).
@@ -111,10 +117,12 @@ Future<FileCacheDatabase> getFileCache() => _cacheFuture ??= _openFileCache();
 Future<FileCacheDatabase> _openFileCache() async {
   String? path;
   if (!kIsWeb) {
-    // Application documents directory, per platform.
-    path = (await app_fs.fs.getApplicationDocumentsDirectory(
+    // A folder of its own in the application documents directory:
+    // clearCache() deletes the data/ and file/ folders of path.
+    var documents = await app_fs.fs.getApplicationDocumentsDirectory(
       packageName: appPackageName,
-    )).path;
+    );
+    path = app_fs.fs.path.join(documents.path, 'file_cache');
   }
   return FileCacheDatabaseFlutter(
     databaseFactory: getDatabaseFactory(packageName: appPackageName),
@@ -129,7 +137,7 @@ Future<FileCacheDatabase> _openFileCache() async {
 ```dart
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 
 /// Displays an image downloaded once and kept on the device.
@@ -177,15 +185,18 @@ Future<void> sources(FileCacheDatabase cache) async {
   Uint8List bundled = await cache.getContent(assetSource);
   print(cache.parseAssetOrNull(assetSource)); // assets/audio/beep.mp3
 
-  // A file on the device (io only), read directly.
-  Uint8List local = await cache.getContent('/storage/emulated/0/a.mp3');
+  // A file on the device (io only), read directly: a file uri, a raw path
+  // with # or ? would throw.
+  Uint8List local = await cache.getContent(
+    Uri.file('/storage/emulated/0/Track #1.mp3').toString(),
+  );
 }
 ```
 
 ### Settings screen: clear the cache
 
 ```dart
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_file_cache_flutter/file_cache_flutter.dart';
 
 Widget clearCacheTile(FileCacheDatabase cache) => ListTile(
